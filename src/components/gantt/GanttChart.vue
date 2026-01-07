@@ -142,7 +142,7 @@ function scrollToToday() { startDate.value = startOfWeek(new Date(), { weekStart
           class="header-cell"
           :class="{ 'weekend': date.getDay() === 0 || date.getDay() === 6 }"
         >
-          <div class="day-char">{{ format(date, 'EEEEE') }}</div>
+          <div class="day-char">{{ format(date, 'EEE') }}</div>
           <div class="day-num">{{ format(date, 'd') }}</div>
         </div>
 
@@ -348,8 +348,9 @@ function scrollToToday() { startDate.value = startOfWeek(new Date(), { weekStart
     border-right: 1px solid var(--border-color); 
     display: flex; flex-direction: column; align-items: center; justify-content: center; 
 }
-.day-char { font-size: 0.7rem; color: var(--color-text-muted); }
-.day-num { font-weight: 600; font-size: 0.9rem; }
+.day-char { font-size: 0.6rem; /* Slightly smaller */
+  text-transform: uppercase; color: var(--color-text-muted); }
+.day-num { font-weight: 600; font-size: 0.8rem; }
 
 .gantt-body { position: relative; }
 
