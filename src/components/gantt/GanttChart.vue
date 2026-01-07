@@ -6,6 +6,8 @@ import { ChevronLeft, ChevronRight, AlertCircle, Calendar, Plus, Pencil } from '
 import Modal from '../common/Modal.vue'
 import TaskEditor from '../editors/TaskEditor.vue'
 import EpicEditor from '../editors/EpicEditor.vue'
+import MilestoneEditor from '../editors/MilestoneEditor.vue'
+import { Flag } from 'lucide-vue-next'
 
 const store = useCapacityStore()
 
@@ -29,6 +31,9 @@ const parentEpicId = ref('') // For new task creation
 const isEpicEditorOpen = ref(false)
 const editingEpicId = ref('')
 
+const isMilestoneEditorOpen = ref(false)
+const editingMilestoneId = ref('')
+
 function openTaskEditor(taskId?: string, epicId?: string) {
     editingTaskId.value = taskId || ''
     parentEpicId.value = epicId || ''
@@ -40,12 +45,19 @@ function openEpicEditor(epicId?: string) {
     isEpicEditorOpen.value = true
 }
 
+function openMilestoneEditor(milestoneId?: string) {
+    editingMilestoneId.value = milestoneId || ''
+    isMilestoneEditorOpen.value = true
+}
+
 function closeEditors() {
     isTaskEditorOpen.value = false
     isEpicEditorOpen.value = false
     editingTaskId.value = ''
     parentEpicId.value = ''
     editingEpicId.value = ''
+    isMilestoneEditorOpen.value = false
+    editingMilestoneId.value = ''
 }
 
 // Helpers
@@ -71,6 +83,8 @@ function getTaskGridStyle(task: any) {
     gridColumnEnd: gridEnd
   }
 }
+
+
 
 function shouldRenderTask(task: any) {
     const start = parseISO(task.start)
@@ -103,6 +117,9 @@ function scrollToToday() { startDate.value = startOfWeek(new Date(), { weekStart
             <button class="btn-primary-sm" @click="openEpicEditor()">
                 <Plus :size="16" /> Add Epic
             </button>
+            <button class="btn-secondary-sm" @click="openMilestoneEditor()">
+                <Flag :size="16" /> Add Milestone
+            </button>
         </div>
 
       <div class="date-controls">
@@ -128,10 +145,57 @@ function scrollToToday() { startDate.value = startOfWeek(new Date(), { weekStart
           <div class="day-char">{{ format(date, 'EEEEE') }}</div>
           <div class="day-num">{{ format(date, 'd') }}</div>
         </div>
+
+        <!-- Global Milestones Label Overlay (Only for milestones with NO epicId) -->
+        <!-- We reuse the grid system to place labels. -->
+        <div class="milestone-labels-layer grid-row" style="position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;">
+             <div 
+                v-for="milestone in store.milestones.filter(m => !m.epicId)" 
+                :key="milestone.id"
+                class="milestone-label-container"
+                :style="{ 
+                    gridColumnStart: differenceInDays(parseISO(milestone.date), startDate) + 1,
+                    gridColumnEnd: 'span 2' 
+                }"
+             >
+                <div class="milestone-label global" 
+                     :style="{ backgroundColor: milestone.color, left: '50%' }"
+                     @click.stop="openMilestoneEditor(milestone.id)"
+                     style="pointer-events: auto; cursor: pointer; transform: translateX(-50%);"
+                >
+                    <Flag :size="10" fill="currentColor" />
+                    <span>{{ milestone.title }}</span>
+                </div>
+             </div>
+        </div>
       </div>
 
-      <!-- Epics & Tasks -->
-      <div class="gantt-body">
+            <!-- Epics & Tasks -->
+            <div class="gantt-body">
+                <!-- Milestones Overlay -->
+                <!-- (Rendered above in its own grid-row container if we wanted, but let's look at structure) -->
+                <!-- Wait, the previous edit inserted milestone-overlay then closed divs weirdly. Let's fix structure. -->
+                <!-- The structure is gantt-scroll-area > timeline-header, then gantt-body. -->
+                <!-- Inside gantt-body we have milestones overlay and then epics. -->
+                
+                <div class="milestone-overlay grid-row">
+                    <!-- Global Lines (All Milestones get a line) -->
+                    <div 
+                        v-for="milestone in store.milestones" 
+                        :key="milestone.id"
+                        class="milestone-line"
+                        :style="{ 
+                            gridColumnStart: differenceInDays(parseISO(milestone.date), startDate) + 2, 
+                            gridColumnEnd: 'span 0',
+                            borderColor: milestone.color
+                        }"
+                        :title="`${milestone.title} (${milestone.date})`"
+                        @click="openMilestoneEditor(milestone.id)"
+                     >
+                        <!-- No Label Here anymore, labels are in headers -->
+                     </div>
+                </div>
+
         <template v-for="epic in store.epics" :key="epic.id">
             <!-- Epic Header Row -->
             <div class="epic-row">
@@ -141,9 +205,37 @@ function scrollToToday() { startDate.value = startOfWeek(new Date(), { weekStart
                       <Pencil :size="12" />
                   </button>
                 </div>
-                <button class="icon-btn-sm" title="Add Task to Epic" @click="openTaskEditor(undefined, epic.id)">
-                    <Plus :size="14" />
-                </button>
+
+                <!-- Milestone rendering logic implemented below -->
+
+                <div class="toolbar-actions" style="margin-left: auto;">
+                    <button class="icon-btn-sm" title="Add Task to Epic" @click="openTaskEditor(undefined, epic.id)">
+                        <Plus :size="14" />
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Epic-Specific Milestones Layer -->
+            <!-- This layer scrolls with the grid, but we visually position items upwards to overlap the sticky header. -->
+            <div class="epic-milestone-layer grid-row" style="height: 0; pointer-events: none;">
+                 <div 
+                    v-for="milestone in store.milestones.filter(m => m.epicId === epic.id)" 
+                    :key="milestone.id"
+                    class="milestone-label-container"
+                    :style="{ 
+                        gridColumnStart: differenceInDays(parseISO(milestone.date), startDate) + 1,
+                        gridColumnEnd: 'span 2' 
+                    }"
+                 >
+                    <div class="milestone-label" 
+                         :style="{ backgroundColor: milestone.color, left: '50%', top: '-21px' }"
+                         @click="openMilestoneEditor(milestone.id)"
+                         style="pointer-events: auto; cursor: pointer; transform: translate(-50%, -50%);"
+                    >
+                        <Flag :size="10" fill="currentColor" />
+                        <span>{{ milestone.title }}</span>
+                    </div>
+                 </div>
             </div>
 
             <!-- Task Rows -->
@@ -199,6 +291,16 @@ function scrollToToday() { startDate.value = startOfWeek(new Date(), { weekStart
             v-if="isEpicEditorOpen"
             :epicId="editingEpicId"
             :isOpen="isEpicEditorOpen"
+            @save="closeEditors"
+            @close="closeEditors"
+        />
+    </Modal>
+
+    <Modal :isOpen="isMilestoneEditorOpen" :title="editingMilestoneId ? 'Edit Milestone' : 'Add Milestone'" @close="closeEditors">
+        <MilestoneEditor
+            v-if="isMilestoneEditorOpen"
+            :milestoneId="editingMilestoneId"
+            :isOpen="isMilestoneEditorOpen"
             @save="closeEditors"
             @close="closeEditors"
         />
@@ -321,6 +423,22 @@ function scrollToToday() { startDate.value = startOfWeek(new Date(), { weekStart
 }
 .btn-primary-sm:hover { background: var(--color-primary-hover); }
 
+.btn-secondary-sm {
+    background: rgba(255,255,255,0.1);
+    color: var(--color-text-main);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 0.4rem 0.75rem;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-secondary-sm:hover { background: rgba(255,255,255,0.15); }
+
 .icon-btn-sm {
     background: transparent;
     border: 1px solid rgba(255,255,255,0.1);
@@ -353,4 +471,57 @@ function scrollToToday() { startDate.value = startOfWeek(new Date(), { weekStart
 }
 .epic-row:hover .icon-btn-ghost { opacity: 1; }
 .icon-btn-ghost:hover { color: var(--color-primary); background: rgba(255,255,255,0.05); }
+
+/* Milestone Styles */
+.milestone-overlay {
+    position: absolute;
+    top: 0; bottom: 0; left: 0; right: 0;
+    z-index: 50;
+    pointer-events: none; /* Allow clicks through to tasks */
+}
+
+.milestone-line {
+    /* Positioned via grid-column */
+    width: 0;
+    border-left: 2px dashed; /* Using border-left to represent the line */
+    height: 100%;
+    position: relative;
+    pointer-events: auto; /* Allow clicking the milestone itself */
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+.milestone-line:hover {
+    opacity: 1;
+    z-index: 60;
+}
+
+.milestone-label {
+    position: absolute;
+    top: 50%; 
+    left: 0; 
+    /* transform handled inline or by subclass, but base centering is good */
+    transform: translateX(-50%);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 600;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    z-index: 60;
+}
+
+.milestone-label.global {
+    top: 6px; /* Just below top border of header */
+}
+
+.milestone-label-container {
+    position: relative;
+    height: 100%;
+    /* border-left: 1px solid red; debug */
+}
 </style>

@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue'
 import { useCapacityStore } from '../../stores/capacity'
 import type { Resource } from '../../types'
+import { Trash2 } from 'lucide-vue-next'
 
 const props = defineProps<{
   resourceId?: string
@@ -27,6 +28,8 @@ const colors = [
   '#8b5cf6', '#3b82f6', '#14b8a6', '#f43f5e'
 ]
 
+const isDeleting = ref(false)
+
 watch(() => props.isOpen, () => {
   if (props.resourceId) {
     // Edit Mode
@@ -42,6 +45,7 @@ watch(() => props.isOpen, () => {
       capacity: 100,
       color: colors[0]
     }
+    isDeleting.value = false
   }
 }, { immediate: true })
 
@@ -58,49 +62,63 @@ function save() {
 
 function handleDelete() {
   if (!props.resourceId) return
-
-  if (confirm(`Are you sure you want to delete ${form.value.name}? This will remove them from all assigned tasks.`)) {
-    store.deleteResource(props.resourceId)
-    emit('save')
-  }
+  store.deleteResource(props.resourceId)
+  emit('save')
 }
 </script>
 
 <template>
   <div class="resource-form">
-    <div class="form-group">
-      <label>Full Name</label>
-      <input v-model="form.name" type="text" class="input-field" placeholder="e.g. Jane Doe" autofocus />
-    </div>
-
-    <div class="form-group">
-      <label>Capacity Limit (%)</label>
-      <div class="input-wrapper">
-        <input v-model.number="form.capacity" type="number" class="input-field" min="0" max="200" />
+    <div v-if="!isDeleting">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input v-model="form.name" type="text" class="input-field" placeholder="e.g. Jane Doe" autofocus />
       </div>
-      <p class="help-text">Standard full-time is 100%.</p>
-    </div>
 
-    <div class="form-group">
-      <label>Role Color</label>
-      <div class="color-picker">
-        <button 
-          v-for="c in colors" 
-          :key="c"
-          class="color-swatch"
-          :class="{ active: form.color === c }"
-          :style="{ backgroundColor: c }"
-          @click="form.color = c"
-        ></button>
+      <div class="form-group">
+        <label>Capacity Limit (%)</label>
+        <div class="input-wrapper">
+          <input v-model.number="form.capacity" type="number" class="input-field" min="0" max="200" />
+        </div>
+        <p class="help-text">Standard full-time is 100%.</p>
+      </div>
+
+      <div class="form-group">
+        <label>Role Color</label>
+        <div class="color-picker">
+          <button 
+            v-for="c in colors" 
+            :key="c"
+            class="color-swatch"
+            :class="{ active: form.color === c }"
+            :style="{ backgroundColor: c }"
+            @click="form.color = c"
+          ></button>
+        </div>
       </div>
     </div>
 
-    <div class="form-footer">
-        <button type="button" v-if="props.resourceId" class="btn-danger-text" @click="handleDelete">Delete</button>
+    <div v-else class="delete-warning-container">
+        <div class="warning-icon">
+            <Trash2 :size="48" class="text-danger" />
+        </div>
+        <h3>Delete Resource?</h3>
+        <p>Are you sure you want to delete this Resource? This will remove them from <strong>all assigned tasks</strong>.</p>
+    </div>
+
+    <div class="form-footer" v-if="!isDeleting">
+        <button type="button" v-if="props.resourceId" class="icon-btn-danger" title="Delete Resource" @click="isDeleting = true">
+            <Trash2 :size="18" />
+        </button>
         <div class="footer-right">
             <button type="button" class="btn-secondary" @click="$emit('close')">Cancel</button>
             <button type="submit" class="btn-primary" @click="save">Save Resource</button>
         </div>
+    </div>
+
+    <div class="delete-actions-centered" v-else>
+        <button class="btn-danger-lg" @click="handleDelete">Confirm Delete</button>
+        <button class="btn-text" @click="isDeleting = false">Cancel</button>
     </div>
   </div>
 </template>
@@ -135,4 +153,73 @@ function handleDelete() {
 .color-swatch { width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: transform 0.2s; }
 .color-swatch:hover { transform: scale(1.1); }
 .color-swatch.active { border-color: white; box-shadow: 0 0 0 2px rgba(255,255,255,0.2); }
+
+.icon-btn-danger {
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    padding: 4px;
+}
+.icon-btn-danger:hover { color: var(--color-danger); }
+
+.delete-warning-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 2rem 0;
+    gap: 1rem;
+    animation: fadeIn 0.3s ease;
+    color: var(--color-text-muted);
+}
+.warning-icon {
+    background: rgba(239, 68, 68, 0.1);
+    padding: 1rem;
+    border-radius: 50%;
+    margin-bottom: 0.5rem;
+}
+.delete-warning-container h3 {
+    margin: 0;
+    color: white;
+    font-size: 1.25rem;
+}
+.text-danger { color: var(--color-danger); }
+
+.delete-actions-centered {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.btn-danger-lg {
+    background: var(--color-danger);
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.2s;
+}
+.btn-danger-lg:hover { background: #b91c1c; }
+
+.btn-text {
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    font-size: 0.9rem;
+    text-decoration: underline;
+}
+.btn-text:hover { color: white; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 </style>

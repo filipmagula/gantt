@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
-import type { Resource, Epic, Task, AppState } from '../types'
+import type { Resource, Epic, Task, AppState, Milestone } from '../types'
 import { isWithinInterval, parseISO } from 'date-fns'
 
 export const useCapacityStore = defineStore('capacity', () => {
@@ -54,12 +54,17 @@ export const useCapacityStore = defineStore('capacity', () => {
         }
     ])
 
+    const milestones = ref<Milestone[]>(initialData?.milestones || [])
+    const appName = ref(initialData?.appName || 'Indigo')
+
     // Persistence Watcher
-    watch([resources, epics], () => {
+    watch([resources, epics, milestones, appName], () => {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify({
                 resources: resources.value,
-                epics: epics.value
+                epics: epics.value,
+                milestones: milestones.value,
+                appName: appName.value
             }))
         } catch (e) {
             console.error("Failed to save to local storage", e)
@@ -146,6 +151,7 @@ export const useCapacityStore = defineStore('capacity', () => {
     function updateState(newState: AppState) {
         resources.value = newState.resources
         epics.value = newState.epics
+        milestones.value = newState.milestones || []
     }
 
     function addEpic(epic: Epic) {
@@ -156,6 +162,16 @@ export const useCapacityStore = defineStore('capacity', () => {
         const epic = epics.value.find(e => e.id === epicId)
         if (epic) {
             epic.tasks.push(task)
+        }
+    }
+
+    function deleteTask(taskId: string) {
+        for (const epic of epics.value) {
+            const index = epic.tasks.findIndex(t => t.id === taskId)
+            if (index !== -1) {
+                epic.tasks.splice(index, 1)
+                return
+            }
         }
     }
 
@@ -218,11 +234,32 @@ export const useCapacityStore = defineStore('capacity', () => {
         })
     }
 
+    // Milestone Actions
+    function addMilestone(milestone: Milestone) {
+        milestones.value.push(milestone)
+    }
+
+    function updateMilestone(updatedMilestone: Milestone) {
+        const index = milestones.value.findIndex(m => m.id === updatedMilestone.id)
+        if (index !== -1) {
+            milestones.value[index] = updatedMilestone
+        }
+    }
+
+    function deleteMilestone(milestoneId: string) {
+        const index = milestones.value.findIndex(m => m.id === milestoneId)
+        if (index !== -1) {
+            milestones.value.splice(index, 1)
+        }
+    }
+
     // JSON Export
     function exportState(): string {
         return JSON.stringify({
             resources: resources.value,
-            epics: epics.value
+            epics: epics.value,
+            milestones: milestones.value,
+            appName: appName.value
         }, null, 2)
     }
 
@@ -230,6 +267,7 @@ export const useCapacityStore = defineStore('capacity', () => {
     function importState(json: string) {
         try {
             const data = JSON.parse(json)
+            if (data.appName) appName.value = data.appName
             // Basic validation could go here
             updateState(data)
             return true
@@ -239,9 +277,15 @@ export const useCapacityStore = defineStore('capacity', () => {
         }
     }
 
+    function updateAppName(name: string) {
+        appName.value = name
+    }
+
     return {
         resources,
         epics,
+        milestones,
+        appName,
         allTasks,
         getResourceLoad,
         getLoadStatus,
@@ -249,12 +293,17 @@ export const useCapacityStore = defineStore('capacity', () => {
         updateEpic,
         deleteEpic,
         addTask,
+        deleteTask,
         updateAssignment,
         addResource,
         updateResource,
         deleteResource,
         exportState,
         importState,
-        isTaskOverloaded
+        isTaskOverloaded,
+        addMilestone,
+        updateMilestone,
+        deleteMilestone,
+        updateAppName
     }
 })

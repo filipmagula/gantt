@@ -29,7 +29,16 @@ export interface Epic {
     tasks: Task[]
 }
 
+export interface Milestone {
+    id: string
+    title: string
+    date: string // ISO Date string YYYY-MM-DD
+    color: string
+    epicId?: string
+}
+
 export interface AppState {
     resources: Resource[]
     epics: Epic[]
+    milestones: Milestone[]
 }

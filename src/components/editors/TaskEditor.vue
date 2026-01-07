@@ -26,6 +26,8 @@ const form = ref({
   assignments: [] as Assignment[]
 })
 
+const isDeleting = ref(false)
+
 // Initialize form
 watch(() => props.isOpen, () => {
   if (props.taskId) {
@@ -50,6 +52,7 @@ watch(() => props.isOpen, () => {
         end: today,
         assignments: []
     }
+    isDeleting.value = false
   }
 }, { immediate: true })
 
@@ -111,6 +114,13 @@ function save() {
   emit('close')
 }
 
+function handleDelete() {
+    if (!props.taskId) return
+    store.deleteTask(props.taskId)
+    emit('save') // Refresh list
+    emit('close')
+}
+
 </script>
 
 <template>
@@ -120,56 +130,75 @@ function save() {
       <input v-model="form.name" type="text" class="input-field" placeholder="Task Name" autofocus />
     </div>
 
-    <div class="form-row">
-      <div class="form-group">
-        <label>Start Date</label>
-        <input v-model="form.start" type="date" class="input-field" />
-      </div>
-      <div class="form-group">
-        <label>End Date</label>
-        <input v-model="form.end" type="date" class="input-field" />
-      </div>
+    <div v-if="!isDeleting">
+        <div class="form-row">
+        <div class="form-group">
+            <label>Start Date</label>
+            <input v-model="form.start" type="date" class="input-field" />
+        </div>
+        <div class="form-group">
+            <label>End Date</label>
+            <input v-model="form.end" type="date" class="input-field" />
+        </div>
+        </div>
+
+        <div class="assignments-section">
+        <h4>Assignments</h4>
+        
+        <div v-for="(assignment, idx) in form.assignments" :key="assignment.resourceId" class="assignment-row">
+            <div class="resource-info">
+                <span class="res-name">{{ getResourceName(assignment.resourceId) }}</span>
+            </div>
+            <div class="effort-control">
+                <input 
+                    v-model.number="assignment.effort" 
+                    type="range" 
+                    min="0" 
+                    max="100" 
+                    step="5"
+                    class="range-slider"
+                />
+                <span class="effort-val">{{ assignment.effort }}%</span>
+            </div>
+            <button class="icon-btn-danger" @click="removeAssignment(idx)">
+                <Trash2 :size="16" />
+            </button>
+        </div>
+
+        <div class="add-row">
+            <select v-model="selectedResourceId" class="select-field">
+                <option value="" disabled>Select Resource</option>
+                <option v-for="r in availableResources" :key="r.id" :value="r.id">
+                    {{ r.name }}
+                </option>
+            </select>
+            <button class="btn-primary-sm" :disabled="!selectedResourceId" @click="addAssignment">
+                <Plus :size="16" /> Add
+            </button>
+        </div>
+        </div>
     </div>
 
-    <div class="assignments-section">
-      <h4>Assignments</h4>
-      
-      <div v-for="(assignment, idx) in form.assignments" :key="assignment.resourceId" class="assignment-row">
-        <div class="resource-info">
-            <span class="res-name">{{ getResourceName(assignment.resourceId) }}</span>
+    <div v-else class="delete-warning-container">
+        <div class="warning-icon">
+            <Trash2 :size="48" class="text-danger" />
         </div>
-        <div class="effort-control">
-            <input 
-                v-model.number="assignment.effort" 
-                type="range" 
-                min="0" 
-                max="100" 
-                step="5"
-                class="range-slider"
-            />
-            <span class="effort-val">{{ assignment.effort }}%</span>
-        </div>
-        <button class="icon-btn-danger" @click="removeAssignment(idx)">
-            <Trash2 :size="16" />
-        </button>
-      </div>
-
-      <div class="add-row">
-        <select v-model="selectedResourceId" class="select-field">
-            <option value="" disabled>Select Resource</option>
-            <option v-for="r in availableResources" :key="r.id" :value="r.id">
-                {{ r.name }}
-            </option>
-        </select>
-        <button class="btn-primary-sm" :disabled="!selectedResourceId" @click="addAssignment">
-            <Plus :size="16" /> Add
-        </button>
-      </div>
+        <h3>Delete Task?</h3>
+        <p>Are you sure you want to delete this task? This action cannot be undone.</p>
     </div>
 
-    <div class="form-actions">
+    <div class="form-actions" v-if="!isDeleting">
+        <button v-if="props.taskId" class="icon-btn-danger" title="Delete Task" @click="isDeleting = true">
+            <Trash2 :size="18" />
+        </button>
+        <div style="flex: 1"></div>
         <button class="btn-secondary" @click="$emit('close')">Cancel</button>
         <button class="btn-primary" @click="save">Save Changes</button>
+    </div>
+
+    <div class="delete-actions-centered" v-else>
+        <button class="btn-danger-lg" @click="handleDelete">Confirm Delete</button>
+        <button class="btn-text" @click="isDeleting = false">Cancel</button>
     </div>
   </div>
 </template>
@@ -292,8 +321,68 @@ h4 {
 
 .form-actions {
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
     gap: 1rem;
     margin-top: 1rem;
+}
+
+.delete-warning-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 2rem 0;
+    gap: 1rem;
+    animation: fadeIn 0.3s ease;
+    color: var(--color-text-muted);
+}
+.warning-icon {
+    background: rgba(239, 68, 68, 0.1);
+    padding: 1rem;
+    border-radius: 50%;
+    margin-bottom: 0.5rem;
+}
+.delete-warning-container h3 {
+    margin: 0;
+    color: white;
+    font-size: 1.25rem;
+}
+.text-danger { color: var(--color-danger); }
+
+.delete-actions-centered {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.btn-danger-lg {
+    background: var(--color-danger);
+    color: white;
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    width: 100%;
+    transition: background 0.2s;
+}
+.btn-danger-lg:hover { background: #b91c1c; }
+
+.btn-text {
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    font-size: 0.9rem;
+    text-decoration: underline;
+}
+.btn-text:hover { color: white; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 </style>

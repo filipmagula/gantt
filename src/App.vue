@@ -4,10 +4,16 @@ import { Rocket, BarChart2, Upload, Download, ChartGantt } from 'lucide-vue-next
 import ResourceHeatmap from './components/heatmap/ResourceHeatmap.vue'
 import GanttChart from './components/gantt/GanttChart.vue'
 import { useCapacityStore } from './stores/capacity'
+import { useNotificationStore } from './stores/notifications'
+import Modal from './components/common/Modal.vue'
+import AppNameEditor from './components/editors/AppNameEditor.vue'
+import ToastContainer from './components/ui/ToastContainer.vue'
 
 const currentView = ref<'heatmap' | 'gantt'>('heatmap')
 const store = useCapacityStore()
+const notifications = useNotificationStore()
 const fileInput = ref<HTMLInputElement | null>(null)
+const isNameEditorOpen = ref(false)
 
 // Export Handler
 function handleExport() {
@@ -45,9 +51,9 @@ function handleFileImport(event: Event) {
     reader.onload = (e) => {
       const content = e.target?.result as string
       if (store.importState(content)) {
-        alert('Plan imported successfully!')
+        notifications.add('Plan imported successfully!', 'success')
       } else {
-        alert('Failed to import plan. Invalid JSON.')
+        notifications.add('Failed to import plan. Invalid JSON.', 'error')
       }
     }
     reader.readAsText(file)
@@ -60,7 +66,10 @@ function handleFileImport(event: Event) {
     <header class="app-header glass-panel">
       <div class="brand">
         <Rocket class="logo-icon" />
-        <h1>Antigravity <span class="accent">Planner</span></h1>
+        <h1>
+          <span class="editable-name" @click="isNameEditorOpen = true" title="Edit Name">{{ store.appName }}</span>
+          <span class="accent"> Planner</span>
+        </h1>
       </div>
 
       <nav class="view-switcher">
@@ -106,6 +115,19 @@ function handleFileImport(event: Event) {
         <GanttChart />
       </div>
     </main>
+
+    <Modal 
+      :isOpen="isNameEditorOpen" 
+      title="Edit Application Name" 
+      @close="isNameEditorOpen = false"
+    >
+      <AppNameEditor 
+        :isOpen="isNameEditorOpen" 
+        @save="isNameEditorOpen = false" 
+        @close="isNameEditorOpen = false" 
+      />
+    </Modal>
+    <ToastContainer />
   </div>
 </template>
 
@@ -141,6 +163,17 @@ function handleFileImport(event: Event) {
 }
 .brand .accent {
   color: var(--color-primary);
+}
+
+.editable-name {
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.editable-name:hover {
+    color: white;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 4px;
 }
 
 .view-switcher {
