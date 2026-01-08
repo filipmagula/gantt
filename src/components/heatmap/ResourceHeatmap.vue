@@ -165,59 +165,7 @@ function scrollToToday() {
     align-items: center;
 }
 
-.btn-primary-sm {
-    background: var(--color-primary);
-    color: white;
-    border: none;
-    padding: 0.4rem 0.75rem;
-    border-radius: var(--radius-sm);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-.btn-primary-sm:hover {
-    background: var(--color-primary-hover);
-}
 
-.date-controls {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  background: rgba(0,0,0,0.2);
-  padding: 0 8px;
-  border-radius: var(--radius-md);
-  border: 1px solid rgba(255,255,255,0.05);
-  height: 32px;
-  box-sizing: border-box;
-}
-
-.control-btn {
-  background: transparent;
-  border: none;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  padding: 4px;
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.control-btn:hover {
-  background: rgba(255,255,255,0.1);
-  color: var(--color-text-main);
-}
-
-.current-range {
-  font-weight: 600;
-  font-size: 0.9rem;
-  min-width: 140px;
-  text-align: center;
-  line-height: 1;
-}
 
 .grid-wrapper {
   flex: 1;
@@ -253,20 +201,6 @@ th, td {
   top: 0;
   z-index: 5;
   width: auto; /* Let table layout handle it */
-}
-
-.day-name {
-  font-size: 0.6rem; /* Slightly smaller */
-  text-transform: uppercase;
-  font-weight: 700;
-}
-.day-num {
-  font-size: 0.8rem;
-  color: var(--color-text-main);
-}
-
-.weekend {
-  background: rgba(0,0,0,0.2);
 }
 
 /* Resource Column (Sticky Left) */

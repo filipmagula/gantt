@@ -28,7 +28,7 @@ function save() {
 </script>
 
 <template>
-  <div class="app-name-editor">
+  <div class="form-layout">
     <div class="form-group">
       <label>Application Name</label>
       <input 
@@ -50,57 +50,5 @@ function save() {
 </template>
 
 <style scoped>
-.app-name-editor {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-label {
-    font-size: 0.875rem;
-    color: var(--color-text-muted);
-}
-
-.input-field {
-    background: rgba(0,0,0,0.2);
-    border: 1px solid rgba(255,255,255,0.1);
-    color: white;
-    padding: 0.5rem;
-    border-radius: var(--radius-sm);
-    font-family: inherit;
-    width: 100%;
-    box-sizing: border-box;
-    font-size: 1.1rem;
-}
-.input-field:focus {
-    outline: none;
-    border-color: var(--color-primary);
-}
-
-.form-actions {
-    display: flex;
-    gap: 1rem;
-    margin-top: 0.5rem;
-}
-
-.btn-primary, .btn-secondary {
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: var(--radius-sm);
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.btn-primary { background: var(--color-primary); color: white; }
-.btn-primary:hover { background: var(--color-primary-hover); }
-
-.btn-secondary { background: transparent; color: var(--color-text-main); border: 1px solid rgba(255,255,255,0.1); }
-.btn-secondary:hover { background: rgba(255,255,255,0.05); }
+/* No specific styles needed, using global */
 </style>

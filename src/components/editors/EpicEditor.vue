@@ -75,7 +75,7 @@ function handleDelete() {
 </script>
 
 <template>
-  <div class="epic-form">
+  <div class="form-layout">
     <div v-if="!isDeleting">
       <div class="form-group">
         <label>Epic Title</label>
@@ -123,154 +123,8 @@ function handleDelete() {
 </template>
 
 <style scoped>
-.epic-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-label {
-    font-size: 0.875rem;
-    color: var(--color-text-muted);
-}
-
-.input-field {
-    background: rgba(0,0,0,0.2);
-    border: 1px solid rgba(255,255,255,0.1);
-    color: white;
-    padding: 0.5rem;
-    border-radius: var(--radius-sm);
-    font-family: inherit;
-    width: 100%;
-    box-sizing: border-box;
-}
-.input-field:focus {
-    outline: none;
-    border-color: var(--color-primary);
-}
-
-.color-picker {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.color-swatch {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 2px solid transparent;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-.color-swatch:hover {
-  transform: scale(1.1);
-}
-.color-swatch.active {
-  border-color: white;
-  box-shadow: 0 0 0 2px rgba(255,255,255,0.2);
-}
-
-.form-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center; /* V-align delete button */
-    gap: 1rem;
-    margin-top: 1rem;
-}
-
 .right-actions {
     display: flex;
     gap: 1rem;
 }
-
-.icon-btn-danger {
-    background: transparent;
-    border: none;
-    color: var(--color-text-muted);
-    cursor: pointer;
-    padding: 4px;
-}
-.icon-btn-danger:hover { color: var(--color-danger); }
-
-.delete-warning-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 2rem 0;
-    gap: 1rem;
-    animation: fadeIn 0.3s ease;
-    color: var(--color-text-muted);
-}
-.warning-icon {
-    background: rgba(239, 68, 68, 0.1);
-    padding: 1rem;
-    border-radius: 50%;
-    margin-bottom: 0.5rem;
-}
-.delete-warning-container h3 {
-    margin: 0;
-    color: white;
-    font-size: 1.25rem;
-}
-.text-danger { color: var(--color-danger); }
-
-.delete-actions-centered {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    margin-top: 1rem;
-}
-
-.btn-danger-lg {
-    background: var(--color-danger);
-    color: white;
-    border: none;
-    padding: 0.75rem 2rem;
-    border-radius: var(--radius-md);
-    font-weight: 600;
-    font-size: 1rem;
-    cursor: pointer;
-    width: 100%;
-    transition: background 0.2s;
-}
-.btn-danger-lg:hover { background: #b91c1c; }
-
-.btn-text {
-    background: transparent;
-    border: none;
-    color: var(--color-text-muted);
-    cursor: pointer;
-    font-size: 0.9rem;
-    text-decoration: underline;
-}
-.btn-text:hover { color: white; }
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(5px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.btn-primary, .btn-secondary {
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: var(--radius-sm);
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.btn-primary { background: var(--color-primary); color: white; }
-.btn-primary:hover { background: var(--color-primary-hover); }
-
-.btn-secondary { background: transparent; color: var(--color-text-main); border: 1px solid rgba(255,255,255,0.1); }
-.btn-secondary:hover { background: rgba(255,255,255,0.05); }
 </style>

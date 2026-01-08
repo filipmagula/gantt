@@ -186,7 +186,8 @@ function scrollToToday() { startDate.value = startOfWeek(new Date(), { weekStart
                         class="milestone-line"
                         :style="{ 
                             gridColumnStart: differenceInDays(parseISO(milestone.date), startDate) + 2, 
-                            gridColumnEnd: 'span 0',
+                            gridColumnEnd: 'span 1',
+                            gridRow: '1 / -1', /* Force full height span */
                             borderColor: milestone.color
                         }"
                         :title="`${milestone.title} (${milestone.date})`"
@@ -311,13 +312,8 @@ function scrollToToday() { startDate.value = startOfWeek(new Date(), { weekStart
 <style scoped>
 /* Reuse existing styles + new ones */
 .gantt-container { display: flex; flex-direction: column; height: 100%; padding: 1rem; overflow: hidden; }
-.toolbar { margin-bottom: 1rem; display: flex; justify-content: space-between; }
-.toolbar-actions { display: flex; align-items: center; gap: 1rem; }
 
-.date-controls { display: flex; align-items: center; gap: 1rem; background: rgba(0,0,0,0.2); padding: 0 8px; border-radius: var(--radius-md); border: 1px solid rgba(255,255,255,0.05); width: fit-content; height: 32px; box-sizing: border-box; }
-.control-btn { background: transparent; border: none; color: var(--color-text-muted); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; }
-.control-btn:hover { color: var(--color-text-main); }
-.current-range { font-weight: 600; font-size: 0.9rem; min-width: 140px; text-align: center; line-height: 1; }
+/* Grid System */
 
 /* Grid System */
 /* One column for each day (21 columns) */
@@ -334,25 +330,24 @@ function scrollToToday() { startDate.value = startOfWeek(new Date(), { weekStart
     border: 1px solid var(--border-color); 
     border-radius: var(--radius-md); 
     background: rgba(0,0,0,0.1); 
-    position: relative; 
+    position: relative;
+    /* Removed flex to rely on flow layout + min-height */
 }
 
 .timeline-header { 
     position: sticky; top: 0; z-index: 20; 
     background: var(--color-bg-surface); 
-    border-bottom: 1px solid var(--border-color); 
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0; /* Keep header size */
 }
 
-.header-cell { 
-    height: 48px; 
-    border-right: 1px solid var(--border-color); 
-    display: flex; flex-direction: column; align-items: center; justify-content: center; 
-}
-.day-char { font-size: 0.6rem; /* Slightly smaller */
-  text-transform: uppercase; color: var(--color-text-muted); }
-.day-num { font-weight: 600; font-size: 0.8rem; }
+/* ... existing styles ... */
 
-.gantt-body { position: relative; }
+.gantt-body { 
+    position: relative; 
+    /* Header is ~49px (48px + border). Body should take at least the remaining height. */
+    min-height: calc(100% - 49px); 
+}
 
 .epic-row { 
     position: sticky; left: 0; 
@@ -377,7 +372,6 @@ function scrollToToday() { startDate.value = startOfWeek(new Date(), { weekStart
     height: 100%; 
     border-right: 1px solid rgba(255,255,255,0.03); 
 }
-.weekend { background: rgba(0,0,0,0.2); }
 
 /* Task Layer */
 .task-layer {
@@ -408,70 +402,8 @@ function scrollToToday() { startDate.value = startOfWeek(new Date(), { weekStart
 .task-bar.overloaded { box-shadow: 0 0 10px 3px rgba(239, 68, 68, 0.7); border: 1px solid #ef4444; }
 .error-indicator { color: #fff; background: #ef4444; border-radius: 50%; padding: 2px; display: flex; }
 
-.btn-primary-sm {
-    background: var(--color-primary);
-    color: white;
-    border: none;
-    padding: 0.4rem 0.75rem;
-    border-radius: var(--radius-sm);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-.btn-primary-sm:hover { background: var(--color-primary-hover); }
-
-.btn-secondary-sm {
-    background: rgba(255,255,255,0.1);
-    color: var(--color-text-main);
-    border: 1px solid rgba(255,255,255,0.1);
-    padding: 0.4rem 0.75rem;
-    border-radius: var(--radius-sm);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-.btn-secondary-sm:hover { background: rgba(255,255,255,0.15); }
-
-.icon-btn-sm {
-    background: transparent;
-    border: 1px solid rgba(255,255,255,0.1);
-    color: var(--color-text-muted);
-    width: 24px; height: 24px;
-    border-radius: 4px;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-.icon-btn-sm:hover {
-    background: rgba(255,255,255,0.1);
-    color: white;
-}
-
 .epic-info { display: flex; align-items: center; gap: 0.5rem; }
-
-.icon-btn-ghost {
-    background: transparent;
-    border: none;
-    color: var(--color-text-muted);
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0; 
-    transition: all 0.2s;
-}
 .epic-row:hover .icon-btn-ghost { opacity: 1; }
-.icon-btn-ghost:hover { color: var(--color-primary); background: rgba(255,255,255,0.05); }
 
 /* Milestone Styles */
 .milestone-overlay {
@@ -479,6 +411,8 @@ function scrollToToday() { startDate.value = startOfWeek(new Date(), { weekStart
     top: 0; bottom: 0; left: 0; right: 0;
     z-index: 50;
     pointer-events: none; /* Allow clicks through to tasks */
+    /* Fix for stacking: Force single row */
+    grid-template-rows: 1fr;
 }
 
 .milestone-line {
