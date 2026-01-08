@@ -155,7 +155,7 @@ function getEpicDependencies(epic: any) {
                 // Then X1 = diff + 1. X2 = diff.
                 
                 // PATH: M x1 y1 C (x1+0.5) y1, (x2-0.5) y2, x2 y2
-                const cpOffset = 0.5 // 0.5 grid column curvature
+                const cpOffset = 0.8 // 0.5 grid column curvature
                 
                 paths.push({
                     id: `${depId}-${task.id}`,
@@ -319,7 +319,7 @@ function scrollToToday() { startDate.value = startOfWeek(new Date(), { weekStart
             <!-- Old epic-milestone-layer removed -->
 
             <!-- Task Rows Container (Relative for SVG Layer) -->
-            <div class="epic-tasks-body" :style="{ position: 'relative', height: `${epic.tasks.length * 40}px` }">
+            <div class="epic-tasks-body" style="position: relative;">
                 
                 <!-- Dependency Arrows Layer -->
                 <svg class="dependency-layer" 
@@ -482,7 +482,7 @@ function scrollToToday() { startDate.value = startOfWeek(new Date(), { weekStart
 }
 .epic-label { font-weight: 700; padding-left: 0.5rem; border-left: 3px solid; }
 
-.task-row { position: relative; height: 40px; border-bottom: 1px solid rgba(255,255,255,0.02); }
+.task-row { position: relative; height: 40px; border-bottom: 1px solid rgba(255,255,255,0.02); box-sizing: border-box; }
 
 .grid-lines { 
     position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
