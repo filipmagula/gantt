@@ -59,7 +59,7 @@ function scrollToToday() {
     <div class="toolbar">
       <div class="toolbar-actions">
         <!-- New Button: Add Resource -->
-        <button class="btn-primary-sm" @click="openAddResource">
+        <button class="btn-primary btn-sm" @click="openAddResource">
             <Plus :size="16" /> Add Resource
         </button>
       </div>
@@ -89,11 +89,12 @@ function scrollToToday() {
             <th 
               v-for="date in timelineDates" 
               :key="date.toString()"
-              class="date-header-cell"
-              :class="{ 'weekend': date.getDay() === 0 || date.getDay() === 6 }"
+              class="sticky-header"
             >
-              <div class="day-name">{{ format(date, 'EEE') }}</div>
-              <div class="day-num">{{ format(date, 'd') }}</div>
+              <div class="chart-header-cell" :class="{ 'weekend': date.getDay() === 0 || date.getDay() === 6 }">
+                  <div class="day-name">{{ format(date, 'EEE') }}</div>
+                  <div class="day-num">{{ format(date, 'd') }}</div>
+              </div>
             </th>
           </tr>
         </thead>
@@ -189,19 +190,15 @@ th, td {
 }
 
 /* Headers */
-.date-header-cell {
-  background: var(--color-bg-surface);
-  color: var(--color-text-muted);
-  padding: 0.5rem 0; /* Reduced padding */
-  text-align: center;
-  border-bottom: 1px solid var(--border-color);
-  border-right: 1px solid var(--border-color);
-  /* min-width removed to allow fitting */
+.sticky-header {
   position: sticky;
   top: 0;
   z-index: 5;
-  width: auto; /* Let table layout handle it */
+  padding: 0;
+  background: var(--color-bg-surface); /* Keep opaque background for sticky */
 }
+
+/* Local styles date-header-cell removed in favor of global .chart-header-cell */
 
 /* Resource Column (Sticky Left) */
 .sticky-col {

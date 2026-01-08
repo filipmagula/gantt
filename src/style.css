@@ -171,22 +171,42 @@ label {
 }
 
 /* Buttons */
+.btn-base,
 .btn-primary,
 .btn-secondary,
-.btn-danger {
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-sm);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 0.875rem;
+.btn-danger,
+.btn-ghost {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  /* Default Size (Medium) */
+  padding: 0 1rem;
+  height: 36px;
+  font-size: 0.875rem;
 }
 
+/* Sizes */
+.btn-sm {
+  padding: 0 0.75rem;
+  height: 32px;
+  font-size: 0.8rem;
+}
+
+.btn-lg {
+  padding: 0 2rem;
+  height: 44px;
+  font-size: 1rem;
+}
+
+/* Variants */
 .btn-primary {
   background: var(--color-primary);
   color: white;
@@ -194,6 +214,11 @@ label {
 
 .btn-primary:hover {
   background: var(--color-primary-hover);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn-secondary {
@@ -213,6 +238,17 @@ label {
 
 .btn-danger:hover {
   background: #b91c1c;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text-muted);
+  padding: 0 0.5rem;
+}
+
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--color-text-main);
 }
 
 .btn-text {
@@ -342,24 +378,7 @@ label {
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
 }
 
-.btn-primary-sm {
-  background: var(--color-primary);
-  color: white;
-  padding: 0.25rem 0.75rem;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  font-size: 0.875rem;
-  border: none;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all 0.2s;
-}
 
-.btn-primary-sm:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
 
 /* --- Chart Globals (Gantt & Heatmap) --- */
 
@@ -415,17 +434,35 @@ label {
 }
 
 /* Date Headers */
-.day-char {
+.chart-header-cell {
+  height: 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid var(--border-color);
+  /* Border bottom is usually handled by the container (row), but we can add it here if needed. 
+     Gantt has it on row. Heatmap has it on cell. 
+     Let's keep it minimal here and let container handle structural borders if specific, 
+     OR just add it since consistency is key. */
+  border-bottom: 1px solid var(--border-color);
+  box-sizing: border-box;
+  color: var(--color-text-muted);
+}
+
+.day-name {
   font-size: 0.6rem;
   text-transform: uppercase;
   color: var(--color-text-muted);
   font-weight: 700;
+  line-height: 1.2;
 }
 
 .day-num {
   font-weight: 600;
   font-size: 0.8rem;
   color: var(--color-text-main);
+  line-height: 1.2;
 }
 
 .weekend {
@@ -433,27 +470,10 @@ label {
 }
 
 /* Chart Buttons */
-.btn-secondary-sm {
-  background: rgba(255, 255, 255, 0.1);
-  color: var(--color-text-main);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 0.4rem 0.75rem;
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
 
-.btn-secondary-sm:hover {
-  background: rgba(255, 255, 255, 0.15);
-}
 
 .icon-btn-sm {
-  background: transparent;
+  background: rgba(0, 0, 0, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--color-text-muted);
   width: 24px;
@@ -467,7 +487,7 @@ label {
 }
 
 .icon-btn-sm:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 1.0);
   color: white;
 }
 
