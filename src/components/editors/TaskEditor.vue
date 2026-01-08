@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import { useCapacityStore } from '../../stores/capacity'
-import { Plus, Trash2 } from 'lucide-vue-next'
+import { Trash2 } from 'lucide-vue-next'
 import type { Task, Assignment } from '../../types'
 
 const props = defineProps<{
@@ -79,11 +79,7 @@ const availabledependencyTasks = computed(() => {
 
 const selectedDependencyId = ref('')
 
-function addDependency() {
-    if (!selectedDependencyId.value) return
-    form.value.dependencies.push(selectedDependencyId.value)
-    selectedDependencyId.value = ''
-}
+
 
 function removeDependency(index: number) {
     form.value.dependencies.splice(index, 1)
@@ -147,6 +143,14 @@ function save() {
   emit('close')
 }
 
+function addDependency() {
+    if (!selectedDependencyId.value) return
+    if (!form.value.dependencies.includes(selectedDependencyId.value)) {
+        form.value.dependencies.push(selectedDependencyId.value)
+    }
+    selectedDependencyId.value = ''
+}
+
 function handleDelete() {
     if (!props.taskId) return
     store.deleteTask(props.taskId)
@@ -175,66 +179,67 @@ function handleDelete() {
         </div>
         </div>
 
-        <div class="assignments-section">
-        <h4>Assignments</h4>
-        
-        <div v-for="(assignment, idx) in form.assignments" :key="assignment.resourceId" class="assignment-row">
-            <div class="resource-info">
-                <span class="res-name">{{ getResourceName(assignment.resourceId) }}</span>
-            </div>
-            <div class="effort-control">
-                <input 
-                    v-model.number="assignment.effort" 
-                    type="range" 
-                    min="0" 
-                    max="100" 
-                    step="5"
-                    class="range-slider"
-                />
-                <span class="effort-val">{{ assignment.effort }}%</span>
-            </div>
-            <button class="icon-btn-danger" @click="removeAssignment(idx)">
-                <Trash2 :size="16" />
-            </button>
-        </div>
+        <!-- Assignments Section -->
+        <!-- Assignments Section -->
+        <div class="form-group" style="margin-top: 1rem;">
+            <label>Assignments</label>
+            
+            <div class="seamless-list">
+                <div v-for="(assignment, idx) in form.assignments" :key="assignment.resourceId" class="seamless-row">
+                    <div class="resource-info">
+                        <span class="res-name">{{ getResourceName(assignment.resourceId) }}</span>
+                    </div>
+                    <div class="effort-control">
+                        <input 
+                            v-model.number="assignment.effort" 
+                            type="range" 
+                            min="0" 
+                            max="100" 
+                            step="5"
+                            class="range-slider"
+                        />
+                        <span class="effort-val">{{ assignment.effort }}%</span>
+                    </div>
+                    <button class="icon-btn-danger" @click="removeAssignment(idx)">
+                        <Trash2 :size="16" />
+                    </button>
+                </div>
 
-        <div class="add-row">
-            <select v-model="selectedResourceId" class="select-field">
-                <option value="" disabled>Select Resource</option>
-                <option v-for="r in availableResources" :key="r.id" :value="r.id">
-                    {{ r.name }}
-                </option>
-            </select>
-            <button class="btn-primary-sm" :disabled="!selectedResourceId" @click="addAssignment">
-                <Plus :size="16" /> Add
-            </button>
-        </div>
+                <div class="seamless-row add-input-row">
+                    <select v-model="selectedResourceId" class="seamless-select" @change="addAssignment">
+                        <option value="" disabled selected>+ Add Assignment...</option>
+                        <option v-for="r in availableResources" :key="r.id" :value="r.id">
+                            {{ r.name }}
+                        </option>
+                    </select>
+                </div>
+            </div>
         </div>
         <!-- Dependencies Section -->
-        <div class="assignments-section" style="margin-top: 1rem;">
-            <h4>Dependencies</h4>
-            <div v-if="form.dependencies.length === 0" class="text-muted" style="margin-bottom: 1rem; font-size: 0.9rem;">
-                No dependencies.
-            </div>
-            <div v-for="(depId, idx) in form.dependencies" :key="depId" class="assignment-row">
-                <div style="flex: 1; font-size: 0.9rem;">
-                   Predecessor: <strong>{{ getTaskName(depId) }}</strong>
-                </div>
-                <button class="icon-btn-danger" @click="removeDependency(idx)">
-                    <Trash2 :size="16" />
-                </button>
-            </div>
+        <!-- Dependencies Section -->
+        <!-- Dependencies Section -->
+        <div class="form-group" style="margin-top: 1rem;">
+            <label>Dependencies</label>
+            <div class="seamless-list">
 
-            <div class="add-row">
-                <select v-model="selectedDependencyId" class="select-field">
-                    <option value="" disabled>Select Predecessor Task</option>
-                    <option v-for="t in availabledependencyTasks" :key="t.id" :value="t.id">
-                        {{ t.name }}
-                    </option>
-                </select>
-                <button class="btn-primary-sm" :disabled="!selectedDependencyId" @click="addDependency">
-                    <Plus :size="16" /> Add
-                </button>
+                
+                <div v-for="(depId, idx) in form.dependencies" :key="depId" class="seamless-row">
+                    <div style="flex: 1; font-size: 0.9rem;">
+                       Predecessor: <strong>{{ getTaskName(depId) }}</strong>
+                    </div>
+                    <button class="icon-btn-danger" @click="removeDependency(idx)">
+                        <Trash2 :size="16" />
+                    </button>
+                </div>
+
+                <div class="seamless-row add-input-row">
+                    <select v-model="selectedDependencyId" class="seamless-select" @change="addDependency">
+                        <option value="" disabled selected>+ Add Dependency...</option>
+                        <option v-for="t in availabledependencyTasks" :key="t.id" :value="t.id">
+                            {{ t.name }}
+                        </option>
+                    </select>
+                </div>
             </div>
         </div>
     </div>
@@ -272,11 +277,48 @@ function handleDelete() {
     flex: 1;
 }
 
-.assignments-section {
-    background: rgba(255,255,255,0.03);
-    padding: 1rem;
+/* Seamless List Styles */
+.seamless-list {
+    border: 1px solid rgba(255,255,255,0.1);
     border-radius: var(--radius-md);
-    border: 1px solid rgba(255,255,255,0.05);
+    overflow: hidden;
+    background: rgba(0,0,0,0.1);
+}
+
+.seamless-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    background: rgba(0,0,0,0.1); /* Darker row background like reference */
+}
+
+.seamless-row:last-child {
+    border-bottom: none;
+}
+
+.add-input-row {
+    padding: 0; 
+    background: transparent; /* Makes the select blend in */
+}
+
+.seamless-select {
+    width: 100%;
+    background: transparent;
+    border: none;
+    padding: 0.75rem 1rem;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+    cursor: pointer;
+    outline: none;
+}
+.seamless-select:hover {
+    color: var(--color-text-main);
+    background: rgba(255,255,255,0.02);
+}
+.seamless-select option {
+    background: var(--color-bg-card); /* Ensure dropdown options are readable */
 }
 
 h4 {

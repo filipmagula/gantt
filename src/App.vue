@@ -63,7 +63,7 @@ function handleFileImport(event: Event) {
 
 <template>
   <div class="app-layout">
-    <header class="app-header glass-panel">
+    <header class="app-header">
       <div class="brand">
         <Rocket class="logo-icon" />
         <h1>
@@ -141,7 +141,7 @@ function handleFileImport(event: Event) {
 
 .app-header {
   height: var(--header-height);
-  margin: 1rem;
+  margin: 0;
   padding: 0 1.5rem;
   display: flex;
   align-items: center;
