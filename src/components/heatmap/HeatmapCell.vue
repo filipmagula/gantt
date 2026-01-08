@@ -25,15 +25,14 @@ const cellClasses = computed(() => {
 <template>
   <div class="heatmap-cell" :class="cellClasses" :title="`${load}% effort on ${formattedDate}`">
     <span v-if="load > 0" class="cell-content">{{ load }}%</span>
-    <span v-else class="cell-content empty">-</span>
   </div>
 </template>
 
 <style scoped>
 .heatmap-cell {
   height: 48px; /* Fixed height for consistency */
-  border-right: 1px solid var(--border-color);
-  border-bottom: 1px solid var(--border-color);
+  border-right: 1px solid rgba(255,255,255,0.03);
+  border-bottom: 1px solid rgba(255,255,255,0.03);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -79,7 +78,7 @@ const cellClasses = computed(() => {
 
 .cell-empty {
   color: var(--color-text-muted);
-  opacity: 0.3;
+  /* opacity: 0.3; Removed to keep borders visible */
 }
 
 @keyframes pulse-red {

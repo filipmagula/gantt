@@ -124,10 +124,12 @@ function scrollToToday() {
               :class="{ 'weekend': date.getDay() === 0 || date.getDay() === 6 }"
             >
               <HeatmapCell
+                v-if="store.getResourceLoad(resource.id, date) > 0"
                 :date="date"
                 :load="store.getResourceLoad(resource.id, date)"
                 :status="store.getLoadStatus(store.getResourceLoad(resource.id, date), resource.capacity)"
               />
+              <div v-else class="empty-cell"></div>
             </td>
           </tr>
         </tbody>
@@ -173,7 +175,7 @@ function scrollToToday() {
   overflow: auto;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  background: rgba(0,0,0,0.1);
+  /* background: rgba(0,0,0,0.1); Removed to match Gantt base color */
 }
 
 .heatmap-table {
@@ -275,5 +277,11 @@ th, td {
 }
 .resource-cell:hover .edit-hint {
     opacity: 1;
+}
+
+.empty-cell {
+  height: 48px;
+  border-right: 1px solid rgba(255,255,255,0.03);
+  border-bottom: 1px solid rgba(255,255,255,0.03);
 }
 </style>
