@@ -20,7 +20,6 @@ export const useCapacityStore = defineStore('capacity', () => {
     const resources = ref<Resource[]>(initialData?.resources || [
         { id: 'r1', name: 'Alex Rivera', capacity: 100, color: '#6366f1' },
         { id: 'r2', name: 'Sarah Chen', capacity: 80, color: '#10b981' }, // Part-time example
-        { id: 'r3', name: 'Mike Johnson', capacity: 100, color: '#f59e0b' }
     ])
 
     const epics = ref<Epic[]>(initialData?.epics || [
@@ -33,8 +32,8 @@ export const useCapacityStore = defineStore('capacity', () => {
                     id: 't1',
                     epicId: 'e1',
                     name: 'Server Migration',
-                    start: '2026-03-01',
-                    end: '2026-03-10',
+                    start: '2026-01-10',
+                    end: '2026-01-20',
                     assignments: [
                         { taskId: 't1', resourceId: 'r1', effort: 75 }
                     ]
@@ -43,8 +42,8 @@ export const useCapacityStore = defineStore('capacity', () => {
                     id: 't2',
                     epicId: 'e1',
                     name: 'Database Optimization',
-                    start: '2026-03-05',
-                    end: '2026-03-15',
+                    start: '2026-01-17',
+                    end: '2026-02-20',
                     assignments: [
                         { taskId: 't2', resourceId: 'r1', effort: 30 }, // Overlap with t1 => 105% (RED)
                         { taskId: 't2', resourceId: 'r2', effort: 50 }
@@ -55,7 +54,7 @@ export const useCapacityStore = defineStore('capacity', () => {
     ])
 
     const milestones = ref<Milestone[]>(initialData?.milestones || [])
-    const appName = ref(initialData?.appName || 'Indigo')
+    const appName = ref(initialData?.appName || 'My Project')
 
     // Persistence Watcher
     watch([resources, epics, milestones, appName], () => {
