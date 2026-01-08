@@ -1,0 +1,664 @@
+{
+  "resources": [
+    {
+      "id": "res_001",
+      "name": "Alice Chen",
+      "capacity": 100,
+      "color": "#10b981"
+    },
+    {
+      "id": "res_002",
+      "name": "Bob Smith",
+      "capacity": 100,
+      "color": "#10b981"
+    },
+    {
+      "id": "res_003",
+      "name": "Charlie Day",
+      "capacity": 80,
+      "color": "#f59e0b"
+    },
+    {
+      "id": "res_004",
+      "name": "Diana Prince",
+      "capacity": 100,
+      "color": "#10b981"
+    },
+    {
+      "id": "res_005",
+      "name": "Evan Wright",
+      "capacity": 50,
+      "color": "#f43f5e"
+    },
+    {
+      "id": "res_006",
+      "name": "Fiona Gallagher",
+      "capacity": 100,
+      "color": "#10b981"
+    },
+    {
+      "id": "res_007",
+      "name": "George Bluth",
+      "capacity": 60,
+      "color": "#8b5cf6"
+    },
+    {
+      "id": "res_008",
+      "name": "Hannah Abbott",
+      "capacity": 100,
+      "color": "#10b981"
+    },
+    {
+      "id": "res_009",
+      "name": "Ian Malcolm",
+      "capacity": 70,
+      "color": "#ec4899"
+    },
+    {
+      "id": "res_010",
+      "name": "Julia Louis",
+      "capacity": 90,
+      "color": "#10b981"
+    }
+  ],
+  "epics": [
+    {
+      "id": "epic_core",
+      "title": "Core API Framework",
+      "color": "#6366f1",
+      "tasks": [
+        {
+          "id": "c1",
+          "epicId": "epic_core",
+          "name": "Req Analysis",
+          "start": "2026-01-08",
+          "end": "2026-01-15",
+          "assignments": [
+            {
+              "taskId": "c1",
+              "resourceId": "res_001",
+              "effort": 100
+            }
+          ],
+          "dependencies": []
+        },
+        {
+          "id": "c2",
+          "epicId": "epic_core",
+          "name": "Auth Module",
+          "start": "2026-01-16",
+          "end": "2026-01-28",
+          "assignments": [
+            {
+              "taskId": "c2",
+              "resourceId": "res_001",
+              "effort": 80
+            }
+          ],
+          "dependencies": [
+            "c1"
+          ]
+        },
+        {
+          "id": "c3",
+          "epicId": "epic_core",
+          "name": "DB Schema",
+          "start": "2026-01-20",
+          "end": "2026-02-01",
+          "assignments": [
+            {
+              "taskId": "c3",
+              "resourceId": "res_002",
+              "effort": 100
+            }
+          ],
+          "dependencies": [
+            "c1"
+          ]
+        },
+        {
+          "id": "c4",
+          "epicId": "epic_core",
+          "name": "Core Services",
+          "start": "2026-02-05",
+          "end": "2026-02-18",
+          "assignments": [
+            {
+              "taskId": "c4",
+              "resourceId": "res_002",
+              "effort": 100
+            }
+          ],
+          "dependencies": [
+            "c2",
+            "c3"
+          ]
+        },
+        {
+          "id": "c5",
+          "epicId": "epic_core",
+          "name": "Integration Testing",
+          "start": "2026-02-20",
+          "end": "2026-03-05",
+          "assignments": [
+            {
+              "taskId": "c5",
+              "resourceId": "res_010",
+              "effort": 50
+            }
+          ],
+          "dependencies": [
+            "c4"
+          ]
+        },
+        {
+          "id": "c6",
+          "epicId": "epic_core",
+          "name": "API Gateway",
+          "start": "2026-03-10",
+          "end": "2026-03-20",
+          "assignments": [
+            {
+              "taskId": "c6",
+              "resourceId": "res_010",
+              "effort": 50
+            }
+          ],
+          "dependencies": [
+            "c5"
+          ]
+        },
+        {
+          "id": "c7",
+          "epicId": "epic_core",
+          "name": "Cloud Deployment",
+          "start": "2026-04-01",
+          "end": "2026-04-27",
+          "assignments": [
+            {
+              "taskId": "c7",
+              "resourceId": "res_001",
+              "effort": 90
+            }
+          ],
+          "dependencies": [
+            "c6"
+          ]
+        },
+        {
+          "id": "c8",
+          "epicId": "epic_core",
+          "name": "Monitoring Setup",
+          "start": "2026-05-01",
+          "end": "2026-05-12",
+          "assignments": [
+            {
+              "taskId": "c8",
+              "resourceId": "res_001",
+              "effort": 40
+            }
+          ],
+          "dependencies": [
+            "c7"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "epic_ui",
+      "title": "UI/UX Redesign",
+      "color": "#14b8a6",
+      "tasks": [
+        {
+          "id": "u1",
+          "epicId": "epic_ui",
+          "name": "User Research",
+          "start": "2026-01-10",
+          "end": "2026-01-24",
+          "assignments": [
+            {
+              "taskId": "u1",
+              "resourceId": "res_003",
+              "effort": 50
+            }
+          ],
+          "dependencies": []
+        },
+        {
+          "id": "u2",
+          "epicId": "epic_ui",
+          "name": "Wireframing",
+          "start": "2026-01-25",
+          "end": "2026-02-05",
+          "assignments": [
+            {
+              "taskId": "u2",
+              "resourceId": "res_003",
+              "effort": 50
+            }
+          ],
+          "dependencies": [
+            "u1"
+          ]
+        },
+        {
+          "id": "u3",
+          "epicId": "epic_ui",
+          "name": "Prototyping",
+          "start": "2026-02-01",
+          "end": "2026-02-12",
+          "assignments": [
+            {
+              "taskId": "u3",
+              "resourceId": "res_004",
+              "effort": 80
+            }
+          ],
+          "dependencies": [
+            "u2"
+          ]
+        },
+        {
+          "id": "u4",
+          "epicId": "epic_ui",
+          "name": "Component Lib",
+          "start": "2026-02-15",
+          "end": "2026-03-01",
+          "assignments": [
+            {
+              "taskId": "u4",
+              "resourceId": "res_004",
+              "effort": 100
+            }
+          ],
+          "dependencies": [
+            "u3"
+          ]
+        },
+        {
+          "id": "u5",
+          "epicId": "epic_ui",
+          "name": "Dashboard Dev",
+          "start": "2026-03-05",
+          "end": "2026-03-18",
+          "assignments": [
+            {
+              "taskId": "u5",
+              "resourceId": "res_007",
+              "effort": 60
+            }
+          ],
+          "dependencies": [
+            "u4",
+            "c3"
+          ]
+        },
+        {
+          "id": "u6",
+          "epicId": "epic_ui",
+          "name": "Mobile Views",
+          "start": "2026-03-20",
+          "end": "2026-04-02",
+          "assignments": [
+            {
+              "taskId": "u6",
+              "resourceId": "res_007",
+              "effort": 60
+            }
+          ],
+          "dependencies": [
+            "u5"
+          ]
+        },
+        {
+          "id": "u7",
+          "epicId": "epic_ui",
+          "name": "User Testing",
+          "start": "2026-04-15",
+          "end": "2026-04-28",
+          "assignments": [
+            {
+              "taskId": "u7",
+              "resourceId": "res_003",
+              "effort": 40
+            }
+          ],
+          "dependencies": [
+            "u6"
+          ]
+        },
+        {
+          "id": "u8",
+          "epicId": "epic_ui",
+          "name": "Final Polish",
+          "start": "2026-04-30",
+          "end": "2026-05-15",
+          "assignments": [
+            {
+              "taskId": "u8",
+              "resourceId": "res_004",
+              "effort": 100
+            }
+          ],
+          "dependencies": [
+            "u7"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "epic_sec",
+      "title": "Security Hardening",
+      "color": "#f43f5e",
+      "tasks": [
+        {
+          "id": "s1",
+          "epicId": "epic_sec",
+          "name": "Vuln Audit",
+          "start": "2026-01-15",
+          "end": "2026-01-25",
+          "assignments": [
+            {
+              "taskId": "s1",
+              "resourceId": "res_006",
+              "effort": 100
+            }
+          ],
+          "dependencies": []
+        },
+        {
+          "id": "s2",
+          "epicId": "epic_sec",
+          "name": "MFA Setup",
+          "start": "2026-02-01",
+          "end": "2026-02-14",
+          "assignments": [
+            {
+              "taskId": "s2",
+              "resourceId": "res_006",
+              "effort": 90
+            }
+          ],
+          "dependencies": [
+            "s1"
+          ]
+        },
+        {
+          "id": "s3",
+          "epicId": "epic_sec",
+          "name": "Encryption",
+          "start": "2026-02-10",
+          "end": "2026-02-22",
+          "assignments": [
+            {
+              "taskId": "s3",
+              "resourceId": "res_005",
+              "effort": 50
+            }
+          ],
+          "dependencies": [
+            "s1"
+          ]
+        },
+        {
+          "id": "s4",
+          "epicId": "epic_sec",
+          "name": "RBAC Implementation",
+          "start": "2026-03-01",
+          "end": "2026-03-14",
+          "assignments": [
+            {
+              "taskId": "s4",
+              "resourceId": "res_009",
+              "effort": 70
+            }
+          ],
+          "dependencies": [
+            "s2"
+          ]
+        },
+        {
+          "id": "s5",
+          "epicId": "epic_sec",
+          "name": "Pen-Testing",
+          "start": "2026-03-20",
+          "end": "2026-04-02",
+          "assignments": [
+            {
+              "taskId": "s5",
+              "resourceId": "res_009",
+              "effort": 70
+            }
+          ],
+          "dependencies": [
+            "s4"
+          ]
+        },
+        {
+          "id": "s6",
+          "epicId": "epic_sec",
+          "name": "Incident Plan",
+          "start": "2026-04-10",
+          "end": "2026-04-24",
+          "assignments": [
+            {
+              "taskId": "s6",
+              "resourceId": "res_006",
+              "effort": 100
+            }
+          ],
+          "dependencies": [
+            "s5"
+          ]
+        },
+        {
+          "id": "s7",
+          "epicId": "epic_sec",
+          "name": "SOC2 Prep",
+          "start": "2026-04-30",
+          "end": "2026-05-24",
+          "assignments": [
+            {
+              "taskId": "s7",
+              "resourceId": "res_006",
+              "effort": 50
+            }
+          ],
+          "dependencies": [
+            "s6"
+          ]
+        },
+        {
+          "id": "s8",
+          "epicId": "epic_sec",
+          "name": "Security Signoff",
+          "start": "2026-06-01",
+          "end": "2026-06-10",
+          "assignments": [
+            {
+              "taskId": "s8",
+              "resourceId": "res_006",
+              "effort": 100
+            }
+          ],
+          "dependencies": [
+            "s7"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "epic_data",
+      "title": "Data Analytics Engine",
+      "color": "#8b5cf6",
+      "tasks": [
+        {
+          "id": "d1",
+          "epicId": "epic_data",
+          "name": "Data Sourcing",
+          "start": "2026-01-20",
+          "end": "2026-02-02",
+          "assignments": [
+            {
+              "taskId": "d1",
+              "resourceId": "res_008",
+              "effort": 100
+            }
+          ],
+          "dependencies": []
+        },
+        {
+          "id": "d2",
+          "epicId": "epic_data",
+          "name": "ETL Pipeline",
+          "start": "2026-02-05",
+          "end": "2026-02-18",
+          "assignments": [
+            {
+              "taskId": "d2",
+              "resourceId": "res_008",
+              "effort": 80
+            }
+          ],
+          "dependencies": [
+            "d1"
+          ]
+        },
+        {
+          "id": "d3",
+          "epicId": "epic_data",
+          "name": "Warehouse Setup",
+          "start": "2026-02-15",
+          "end": "2026-03-01",
+          "assignments": [
+            {
+              "taskId": "d3",
+              "resourceId": "res_002",
+              "effort": 50
+            }
+          ],
+          "dependencies": [
+            "d1"
+          ]
+        },
+        {
+          "id": "d4",
+          "epicId": "epic_data",
+          "name": "Aggregation Logic",
+          "start": "2026-03-05",
+          "end": "2026-03-18",
+          "assignments": [
+            {
+              "taskId": "d4",
+              "resourceId": "res_008",
+              "effort": 100
+            }
+          ],
+          "dependencies": [
+            "d2",
+            "d3"
+          ]
+        },
+        {
+          "id": "d5",
+          "epicId": "epic_data",
+          "name": "Real-time Streams",
+          "start": "2026-04-01",
+          "end": "2026-04-14",
+          "assignments": [
+            {
+              "taskId": "d5",
+              "resourceId": "res_008",
+              "effort": 60
+            }
+          ],
+          "dependencies": [
+            "d4"
+          ]
+        },
+        {
+          "id": "d6",
+          "epicId": "epic_data",
+          "name": "BI Integration",
+          "start": "2026-04-20",
+          "end": "2026-05-03",
+          "assignments": [
+            {
+              "taskId": "d6",
+              "resourceId": "res_010",
+              "effort": 80
+            }
+          ],
+          "dependencies": [
+            "d5"
+          ]
+        },
+        {
+          "id": "d7",
+          "epicId": "epic_data",
+          "name": "ML Model Training",
+          "start": "2026-05-10",
+          "end": "2026-05-24",
+          "assignments": [
+            {
+              "taskId": "d7",
+              "resourceId": "res_008",
+              "effort": 100
+            }
+          ],
+          "dependencies": [
+            "d6"
+          ]
+        },
+        {
+          "id": "d8",
+          "epicId": "epic_data",
+          "name": "Analytics Handover",
+          "start": "2026-06-05",
+          "end": "2026-06-18",
+          "assignments": [
+            {
+              "taskId": "d8",
+              "resourceId": "res_010",
+              "effort": 50
+            }
+          ],
+          "dependencies": [
+            "d7"
+          ]
+        }
+      ]
+    }
+  ],
+  "milestones": [
+    {
+      "id": "m1",
+      "title": "Infrastructure Alpha",
+      "date": "2026-02-20",
+      "color": "#10b981",
+      "epicId": "epic_core"
+    },
+    {
+      "id": "m2",
+      "title": "UI Beta",
+      "date": "2026-04-15",
+      "color": "#f59e0b",
+      "epicId": "epic_ui"
+    },
+    {
+      "id": "m3",
+      "title": "Security Audit Ready",
+      "date": "2026-05-25",
+      "color": "#ec4899",
+      "epicId": "epic_sec"
+    },
+    {
+      "id": "m4",
+      "title": "Final Delivery",
+      "date": "2026-07-01",
+      "color": "#ef4444",
+      "epicId": "epic_data"
+    }
+  ],
+  "appName": "Project Aurora"
+}

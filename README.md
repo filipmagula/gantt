@@ -1,25 +1,58 @@
-# Antigravity Planner
+# Vibe Planner
 
-Antigravity Planner is a modern, interactive resource capacity planning and Gantt chart application built with Vue 3, TypeScript, and Vite. It helps teams visualize workload distribution, manage project timelines (Epics & Tasks), and ensure optimal resource allocation.
+Vibe Planner is a modern, interactive resource capacity planning and Gantt chart application built with **Gemini 3 Pro**, **Vue 3**, **TypeScript**, and **Electron**. It provides teams with a seamless way to visualize workload distribution, manage project timelines, and ensure optimal resource allocation.
 
-## Application Views
+Try it here <https://filipmagula.github.io/gantt/> and import a demo project to get started.
+Download a JSON based demo project from here: <https://filipmagula.github.io/gantt/docs/projects/capacity-plan-2026-01-08_19-27-15.json>.
 
-### Resource Heatmap
+## Key Features
 
-Visualize team capacity and workload intensity at a glance.
-![Resource Heatmap](/Users/filip/.gemini/antigravity/brain/ff55bd78-0135-4070-b6b1-b41a07ee34f1/readme_resource_heatmap_1767727485057.png)
+### 🚀 Client-side application only
 
-### Gantt Chart
+- Your project can be **exported** as a JSON file and **imported** back later. If you forget to save your project it will be stored for you in **local storage** of your browser.
 
-Manage Epics and Tasks on a timeline, with drag-and-drop planning capabilities.
-![Gantt Chart](/Users/filip/.gemini/antigravity/brain/ff55bd78-0135-4070-b6b1-b41a07ee34f1/readme_gantt_chart_1767727494281.png)
+### 🖥️ Native Desktop Experience
 
-## Features
+- **Electron Integration**: Run as a native desktop application for macOS, Windows, or Linux.
+- **Offline First**: All data is persisted locally, ensuring you never lose your planning state.
 
-- **Resource Management**: Add, edit, and remove resources. Assign colors to roles for easy identification.
-- **Capacity Planning**: Heatmap visualization of resource load (Green/Yellow/Red indicators).
-- **Project Planning**: Create Epics and Tasks. Edit Epic titles and colors.
-- **Data Persistence**: Automatic local storage saving. Import/Export data as JSON.
+### 📅 Advanced Gantt Chart
+
+- **Colorful Timeline**: Yes, it is colorful to bring more joy into the world of Project Management.
+- **Compressed View**: Intelligent waterfall layout automatically packs non-overlapping tasks into shared rows, optimizing vertical space.
+- **Dependency Visualization**: Clear curved bezier lines connect dependent tasks.
+- **Milestones**: Track key project dates with global and epic-specific milestones.
+
+### 👥 Resource Management
+
+- **Capacity Heatmap**: Visualize team workload intensity (Green/Yellow/Red) to spot bottlenecks instantly.
+- **Role Awareness**: Color-coded resource roles (Management, Dev, QA, etc.).
+
+## Application Preview
+
+### Main Views
+
+| Gantt Chart |
+|:---:|
+| <img src="docs/screenshots/gantt_chart.png" width="800" alt="Add Milestone Modal"> |
+
+| Resource Heatmap |
+|:---:|
+| <img src="docs/screenshots/resource_heatmap.png" width="800" alt="Add Milestone Modal"> |
+
+### Management Modals
+
+| Add or Edit Resource | Add or Edit Milestone |
+|:---:|:---:|
+| <img src="docs/screenshots/add_resource_modal.png" width="400" alt="Add Resource Modal"> | <img src="docs/screenshots/add_milestone_modal.png" width="400" alt="Add Milestone Modal"> |
+
+| Edit Application Name | Add or Edit Epic |
+|:---:|:---:|
+|<img src="docs/screenshots/edit_app_name_modal.png" width="400" alt="Application Name"> | <img src="docs/screenshots/new_epic_modal.png" width="400" alt="New Epic Modal"> |
+
+|  Add or Edit Task |  |
+|:---:|:---:|
+| <img src="docs/screenshots/edit_task_modal.png" width="400" alt="Edit Task Modal"> |  |
 
 ## Getting Started
 
@@ -34,22 +67,42 @@ Manage Epics and Tasks on a timeline, with drag-and-drop planning capabilities.
 npm install
 ```
 
-### Running the Application (Development)
+### Development
 
-Start the local development server:
+Start the local development server (Web Mode):
 
 ```bash
 npm run dev
 ```
 
-The application will be available at `http://localhost:5173`.
+Start the Electron desktop app (Dev Mode):
+
+```bash
+npm run electron:dev
+```
 
 ### Building for Production
 
-Build the application for deployment:
+Build the web application:
 
 ```bash
 npm run build
 ```
 
-The output will be in the `dist` directory.
+Build the Desktop Application (Electron):
+
+```bash
+npm run dist
+```
+
+The desktop artifacts (DMG, AppImage, Exe) will be output to the `release/` directory.
+
+## Technology Stack
+
+- **AI**: Gemini 3 Pro & Antigravity
+- **Framework**: Vue 3 + TypeScript
+- **Build Tool**: Vite
+- **Desktop Runtime**: Electron
+- **State Management**: Pinia
+- **Icons**: Lucide Vue Next
+- **Date Handling**: date-fns
