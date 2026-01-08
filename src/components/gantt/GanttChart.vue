@@ -114,23 +114,27 @@ function getEpicDependencies(epic: any) {
 
     // Map Tasks to their index (row number) for Y calculation
     // const visibleTasks = epic.tasks 
-    const taskRowHeight = 40 // px
-    const rowCenter = 20 // px
+    const taskRowHeight = 48 // px (Matched to ResourceHeatmap)
+    const rowCenter = 24 // px
 
-    epic.tasks.forEach((task: any, index: number) => {
+    // Get layout for Y positioning
+    const { taskRowIndex } = getEpicLayout(epic)
+
+    epic.tasks.forEach((task: any) => {
         if (!task.dependencies || task.dependencies.length === 0) return
 
         task.dependencies.forEach((depId: string) => {
             const depTask = epic.tasks.find((t: any) => t.id === depId)
-            const depIndex = epic.tasks.findIndex((t: any) => t.id === depId)
             
-            if (depTask && depIndex !== -1) {
+            if (depTask) {
                 // Coordinates
                 const x1 = getX(depTask.end, true) // Source Right
-                const y1 = depIndex * taskRowHeight + rowCenter
-                
                 const x2 = getX(task.start, false) // Target Left
-                const y2 = index * taskRowHeight + rowCenter
+                
+
+                // Y coordinates based on packed row index
+                const y1 = (taskRowIndex.get(depTask.id) ?? 0) * taskRowHeight + rowCenter
+                const y2 = (taskRowIndex.get(task.id) ?? 0) * taskRowHeight + rowCenter
 
                 // Path Logic (Sigmoid/Curved)
                 // Use absolute coordinates if we can, but SVG is styled width:100% height:100%.
@@ -175,6 +179,43 @@ function formatAssignments(assignments: any[]) {
 function nextWeek() { startDate.value = addDays(startDate.value, 7) }
 function prevWeek() { startDate.value = addDays(startDate.value, -7) }
 function scrollToToday() { startDate.value = startOfWeek(new Date(), { weekStartsOn: 1 }) }
+
+function getEpicLayout(epic: any) {
+    // Clone and sort to not mutate original if it was reactive in a way that matters
+    const tasks = [...epic.tasks].sort((a: any, b: any) => new Date(a.start).getTime() - new Date(b.start).getTime())
+    const lanes: any[][] = []
+    const taskRowIndex = new Map<string, number>()
+
+    tasks.forEach((task: any) => {
+        let placed = false
+        
+        // Try to fit in existing lane
+        for (let i = 0; i < lanes.length; i++) {
+            const lane = lanes[i]!
+            const lastTask = lane[lane.length - 1]
+            
+            // Gap Check: End of last < Start of current - 1 day
+            const lastEnd = parseISO(lastTask.end)
+            const currentStart = parseISO(task.start)
+            
+            const diff = differenceInDays(currentStart, lastEnd)
+            
+            if (diff > 1) { 
+                lane.push(task)
+                taskRowIndex.set(task.id, i)
+                placed = true
+                break
+            }
+        }
+        
+        if (!placed) {
+            lanes.push([task])
+            taskRowIndex.set(task.id, lanes.length - 1)
+        }
+    })
+    
+    return { lanes, taskRowIndex }
+}
 </script>
 
 <template>
@@ -322,8 +363,9 @@ function scrollToToday() { startDate.value = startOfWeek(new Date(), { weekStart
             <div class="epic-tasks-body" style="position: relative;">
                 
                 <!-- Dependency Arrows Layer -->
+                <!-- Calculate total height based on packed lanes -->
                 <svg class="dependency-layer" 
-                     :viewBox="`0 0 21 ${epic.tasks.length * 40}`" 
+                     :viewBox="`0 0 21 ${getEpicLayout(epic).lanes.length * 48}`" 
                      preserveAspectRatio="none"
                 >
                     <defs>
@@ -344,36 +386,38 @@ function scrollToToday() { startDate.value = startOfWeek(new Date(), { weekStart
                     />
                 </svg>
 
-                <div v-for="task in epic.tasks" :key="task.id" class="task-row">
-                <!-- Grid Lines (Background) -->
-                <div class="grid-lines grid-row">
-                     <div 
-                        v-for="date in timelineDates" 
-                        :key="date.toString()"
-                        class="grid-cell"
-                        :class="{ 'weekend': date.getDay() === 0 || date.getDay() === 6 }"
-                    ></div>
-                </div>
-
-                <!-- Task Bar (Overlaid Grid) -->
-                 <div class="task-layer grid-row">
-                    <div 
-                        v-if="shouldRenderTask(task)"
-                        class="task-bar"
-                        :class="{ 'overloaded': store.isTaskOverloaded(task.id) }"
-                        :style="{ ...getTaskGridStyle(task), backgroundColor: epic.color || '#6366f1' }"
-                        :title="`${task.name}\n${formatAssignments(task.assignments)}`"
-                        @click.stop="openTaskEditor(task.id)"
-                    >
-                        <div class="task-content">
-                            <span class="task-name">{{ task.name }}</span>
-                            <span class="task-assignments">{{ formatAssignments(task.assignments) }}</span>
-                        </div>
-                        <div v-if="store.isTaskOverloaded(task.id)" class="error-indicator">
-                            <AlertCircle :size="14" />
-                        </div>
+                <div v-for="(lane, laneIdx) in getEpicLayout(epic).lanes" :key="laneIdx" class="task-row">
+                    <!-- Grid Lines (Background) -->
+                    <div class="grid-lines grid-row">
+                         <div 
+                            v-for="date in timelineDates" 
+                            :key="date.toString()"
+                            class="grid-cell"
+                            :class="{ 'weekend': date.getDay() === 0 || date.getDay() === 6 }"
+                        ></div>
                     </div>
-                </div>
+
+                    <!-- Task Bar (Overlaid Grid) -->
+                     <div class="task-layer grid-row">
+                        <template v-for="task in lane" :key="task.id">
+                            <div 
+                                v-if="shouldRenderTask(task)"
+                                class="task-bar"
+                                :class="{ 'overloaded': store.isTaskOverloaded(task.id) }"
+                                :style="{ ...getTaskGridStyle(task), backgroundColor: epic.color || '#6366f1' }"
+                                :title="`${task.name}\n${formatAssignments(task.assignments)}`"
+                                @click.stop="openTaskEditor(task.id)"
+                            >
+                                <div class="task-content">
+                                    <span class="task-name">{{ task.name }}</span>
+                                    <span class="task-assignments">{{ formatAssignments(task.assignments) }}</span>
+                                </div>
+                                <div v-if="store.isTaskOverloaded(task.id)" class="error-indicator">
+                                    <AlertCircle :size="14" />
+                                </div>
+                            </div>
+                        </template>
+                    </div>
                 </div>
             </div>
             <!-- End Epic Tasks Body -->
@@ -482,7 +526,7 @@ function scrollToToday() { startDate.value = startOfWeek(new Date(), { weekStart
 }
 .epic-label { font-weight: 700; padding-left: 0.5rem; border-left: 3px solid; }
 
-.task-row { position: relative; height: 40px; border-bottom: 1px solid rgba(255,255,255,0.02); box-sizing: border-box; }
+.task-row { position: relative; height: 48px; border-bottom: 1px solid rgba(255,255,255,0.02); box-sizing: border-box; }
 
 .grid-lines { 
     position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
