@@ -3,7 +3,7 @@
 Vibe Planner is a modern, interactive resource capacity planning and Gantt chart application built with **Gemini 3 Pro**, **Vue 3**, **TypeScript**, and **Electron**. It provides teams with a seamless way to visualize workload distribution, manage project timelines, and ensure optimal resource allocation.
 
 Try it here <https://filipmagula.github.io/gantt/> and import a demo project to get started.
-Download a JSON based demo project from here: <https://filipmagula.github.io/gantt/docs/projects/capacity-plan-2026-01-08_19-27-15.json>.
+Download a JSON based demo project from here: <https://github.com/filipmagula/gantt/blob/initial/docs/projects/capacity-plan-2026-01-08_19-27-15.json>.
 
 ## Key Features
 
