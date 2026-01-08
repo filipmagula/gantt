@@ -19,6 +19,7 @@ export interface Task {
     start: string // ISO Date string YYYY-MM-DD
     end: string   // ISO Date string YYYY-MM-DD
     assignments: Assignment[]
+    dependencies?: string[] // IDs of tasks this task depends on
 }
 
 export interface Epic {

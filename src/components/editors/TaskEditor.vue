@@ -23,7 +23,8 @@ const form = ref({
   name: '',
   start: '',
   end: '',
-  assignments: [] as Assignment[]
+  assignments: [] as Assignment[],
+  dependencies: [] as string[]
 })
 
 const isDeleting = ref(false)
@@ -39,7 +40,8 @@ watch(() => props.isOpen, () => {
             name: foundTask.name,
             start: foundTask.start,
             end: foundTask.end,
-            assignments: JSON.parse(JSON.stringify(foundTask.assignments))
+            assignments: JSON.parse(JSON.stringify(foundTask.assignments)),
+            dependencies: JSON.parse(JSON.stringify(foundTask.dependencies || []))
         }
     }
   } else {
@@ -50,7 +52,8 @@ watch(() => props.isOpen, () => {
         name: '',
         start: today,
         end: today,
-        assignments: []
+        assignments: [],
+        dependencies: []
     }
     isDeleting.value = false
   }
@@ -61,6 +64,34 @@ const availableResources = computed(() => {
   const currentIds = form.value.assignments.map(a => a.resourceId)
   return store.resources.filter(r => !currentIds.includes(r.id))
 })
+
+const availabledependencyTasks = computed(() => {
+    // Tasks from same Epic, excluding self and already added
+    const epicId = props.epicId || task.value?.epicId
+    if (!epicId) return []
+    
+    return store.allTasks.filter(t => 
+        t.epicId === epicId && 
+        t.id !== props.taskId && 
+        !form.value.dependencies.includes(t.id)
+    )
+})
+
+const selectedDependencyId = ref('')
+
+function addDependency() {
+    if (!selectedDependencyId.value) return
+    form.value.dependencies.push(selectedDependencyId.value)
+    selectedDependencyId.value = ''
+}
+
+function removeDependency(index: number) {
+    form.value.dependencies.splice(index, 1)
+}
+
+function getTaskName(id: string) {
+    return store.allTasks.find(t => t.id === id)?.name || id
+}
 
 const selectedResourceId = ref('')
 
@@ -93,6 +124,7 @@ function save() {
        storedTask.start = form.value.start
        storedTask.end = form.value.end
        storedTask.assignments = form.value.assignments
+       storedTask.dependencies = form.value.dependencies
      }
   } else if (props.epicId) {
      // Create new
@@ -102,7 +134,8 @@ function save() {
          name: form.value.name,
          start: form.value.start,
          end: form.value.end,
-         assignments: form.value.assignments
+         assignments: form.value.assignments,
+         dependencies: form.value.dependencies
      }
      // Fix assignments taskId reference
      newTask.assignments.forEach(a => a.taskId = newTask.id)
@@ -176,6 +209,33 @@ function handleDelete() {
                 <Plus :size="16" /> Add
             </button>
         </div>
+        </div>
+        <!-- Dependencies Section -->
+        <div class="assignments-section" style="margin-top: 1rem;">
+            <h4>Dependencies</h4>
+            <div v-if="form.dependencies.length === 0" class="text-muted" style="margin-bottom: 1rem; font-size: 0.9rem;">
+                No dependencies.
+            </div>
+            <div v-for="(depId, idx) in form.dependencies" :key="depId" class="assignment-row">
+                <div style="flex: 1; font-size: 0.9rem;">
+                   Predecessor: <strong>{{ getTaskName(depId) }}</strong>
+                </div>
+                <button class="icon-btn-danger" @click="removeDependency(idx)">
+                    <Trash2 :size="16" />
+                </button>
+            </div>
+
+            <div class="add-row">
+                <select v-model="selectedDependencyId" class="select-field">
+                    <option value="" disabled>Select Predecessor Task</option>
+                    <option v-for="t in availabledependencyTasks" :key="t.id" :value="t.id">
+                        {{ t.name }}
+                    </option>
+                </select>
+                <button class="btn-primary-sm" :disabled="!selectedDependencyId" @click="addDependency">
+                    <Plus :size="16" /> Add
+                </button>
+            </div>
         </div>
     </div>
 

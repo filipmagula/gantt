@@ -100,6 +100,74 @@ function getResourceName(id: string) {
   return store.resources.find(r => r.id === id)?.name.split(' ')[0] || id
 }
 
+function getEpicDependencies(epic: any) {
+    interface PathData { id: string; d: string; color: string }
+    const paths: PathData[] = []
+    // Helper to get X position (Grid Units 0-21) for a date
+    const getX = (dateStr: string, isEnd: boolean = false) => {
+        const date = parseISO(dateStr)
+        const diff = differenceInDays(date, startDate.value)
+        // If isEnd, we want the end of that day, so +1 day worth of width
+        const offset = isEnd ? 1 : 0
+        return (diff + offset) // Return grid units, not percentage (ViewBox handles scaling)
+    }
+
+    // Map Tasks to their index (row number) for Y calculation
+    // const visibleTasks = epic.tasks 
+    const taskRowHeight = 40 // px
+    const rowCenter = 20 // px
+
+    epic.tasks.forEach((task: any, index: number) => {
+        if (!task.dependencies || task.dependencies.length === 0) return
+
+        task.dependencies.forEach((depId: string) => {
+            const depTask = epic.tasks.find((t: any) => t.id === depId)
+            const depIndex = epic.tasks.findIndex((t: any) => t.id === depId)
+            
+            if (depTask && depIndex !== -1) {
+                // Coordinates
+                const x1 = getX(depTask.end, true) // Source Right
+                const y1 = depIndex * taskRowHeight + rowCenter
+                
+                const x2 = getX(task.start, false) // Target Left
+                const y2 = index * taskRowHeight + rowCenter
+
+                // Path Logic (Sigmoid/Curved)
+                // Use absolute coordinates if we can, but SVG is styled width:100% height:100%.
+                // We use percentages for X and Pixels for Y? 
+                // SVG `viewBox` is complicated if mixing.
+                // EASIEST: SVG uses same coordinate system as HTML container?
+                // No, SVG inside absolute div 100% width.
+                // We can use vector-effect="non-scaling-stroke"?
+                // Let's use % for X in 'd' attribute? standard SVG doesn't support % in path data easily without viewbox magic.
+                // BETTER: Just use unitless coordinates in ViewBox 0 0 100 (height px).
+                // BUT height is dynamic based on task count.
+                // Solution: Inline style for SVG width/height. width=100%, height = tasks.length * 40.
+                // VIEWBOX = "0 0 2100 (tasks.length * 40)". 
+                // Then X ranges 0-2100 (if we map 1 day = 100 units). 
+                
+                // SIMPLER: Just use `vector-effect` or simply calculating distinct paths? 
+                // Let's try CSS variables or calc?? No.
+                
+                // Let's assume standard ViewBox 0 0 100 100 isn't appropriate.
+                // Let's use X as "Grid Units" (0 to 21). Y as Pixels.
+                // ViewBox="0 0 21 [HeightPx]". preserveAspectRatio="none".
+                // Then X1 = diff + 1. X2 = diff.
+                
+                // PATH: M x1 y1 C (x1+0.5) y1, (x2-0.5) y2, x2 y2
+                const cpOffset = 0.5 // 0.5 grid column curvature
+                
+                paths.push({
+                    id: `${depId}-${task.id}`,
+                    d: `M ${x1} ${y1} C ${x1 + cpOffset} ${y1}, ${x2 - cpOffset} ${y2}, ${x2} ${y2}`,
+                    color: '#64748b' // Slate 500
+                })
+            }
+        })
+    })
+    return paths
+}
+
 function formatAssignments(assignments: any[]) {
   return assignments.map(a => `${getResourceName(a.resourceId)} (${a.effort}%)`).join(', ')
 }
@@ -250,8 +318,33 @@ function scrollToToday() { startDate.value = startOfWeek(new Date(), { weekStart
             <!-- This layer scrolls with the grid, but we visually position items upwards to overlap the sticky header. -->
             <!-- Old epic-milestone-layer removed -->
 
-            <!-- Task Rows -->
-            <div v-for="task in epic.tasks" :key="task.id" class="task-row">
+            <!-- Task Rows Container (Relative for SVG Layer) -->
+            <div class="epic-tasks-body" :style="{ position: 'relative', height: `${epic.tasks.length * 40}px` }">
+                
+                <!-- Dependency Arrows Layer -->
+                <svg class="dependency-layer" 
+                     :viewBox="`0 0 21 ${epic.tasks.length * 40}`" 
+                     preserveAspectRatio="none"
+                >
+                    <defs>
+                        <marker id="arrowhead" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
+                            <polygon points="0 0, 6 2, 0 4" fill="#64748b" />
+                        </marker>
+                    </defs>
+                    <path 
+                        v-for="path in getEpicDependencies(epic)"
+                        :key="path.id"
+                        :d="path.d"
+                        stroke="#64748b"
+                        stroke-width="2px"
+                        fill="none"
+                        marker-end="url(#arrowhead)"
+                        vector-effect="non-scaling-stroke" 
+                        opacity="0.6"
+                    />
+                </svg>
+
+                <div v-for="task in epic.tasks" :key="task.id" class="task-row">
                 <!-- Grid Lines (Background) -->
                 <div class="grid-lines grid-row">
                      <div 
@@ -281,7 +374,9 @@ function scrollToToday() { startDate.value = startOfWeek(new Date(), { weekStart
                         </div>
                     </div>
                 </div>
+                </div>
             </div>
+            <!-- End Epic Tasks Body -->
         </template>
       </div>
     </div>
@@ -404,6 +499,15 @@ function scrollToToday() { startDate.value = startOfWeek(new Date(), { weekStart
     z-index: 1;
     pointer-events: none; /* Let clicks pass through empty spaces if needed, but bars have events */
     padding: 6px 0; /* Vertical padding matching task-bar top/bottom logic */
+}
+
+.dependency-layer {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2; /* Between grid (0) and tasks (5) */
+    pointer-events: none;
 }
 
 .task-bar { 
