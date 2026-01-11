@@ -8,6 +8,7 @@ import { useNotificationStore } from './stores/notifications'
 import Modal from './components/common/Modal.vue'
 import AppNameEditor from './components/editors/AppNameEditor.vue'
 import ToastContainer from './components/ui/ToastContainer.vue'
+import DateRangeControls from './components/common/DateRangeControls.vue'
 
 const currentView = ref<'heatmap' | 'gantt'>('heatmap')
 const store = useCapacityStore()
@@ -88,6 +89,8 @@ function handleFileImport(event: Event) {
           Gantt Chart
         </button>
       </nav>
+
+      <DateRangeControls />
 
       <div class="actions">
         <button class="icon-btn" title="Import JSON" @click="triggerImport">
@@ -188,7 +191,8 @@ function handleFileImport(event: Event) {
   background: transparent;
   border: none;
   color: var(--color-text-muted);
-  padding: 0.5rem 1rem;
+  padding: 0 1rem;
+  height: 36px; /* Increased height */
   border-radius: var(--radius-sm);
   cursor: pointer;
   display: flex;
@@ -218,8 +222,8 @@ function handleFileImport(event: Event) {
   background: rgba(255,255,255,0.05);
   border: 1px solid rgba(255,255,255,0.05);
   color: var(--color-text-muted);
-  width: 36px;
-  height: 36px;
+  width: 44px; /* Unify outer height (36 + 4+4) */
+  height: 44px;
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;

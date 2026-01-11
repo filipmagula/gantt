@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useCapacityStore } from '../../stores/capacity'
-import { addDays, format, startOfWeek, differenceInDays, parseISO } from 'date-fns'
-import { ChevronLeft, ChevronRight, AlertCircle, Calendar, Plus, Pencil, GripVertical } from 'lucide-vue-next'
+import { useDateStore } from '../../stores/date'
+import { addDays, format, differenceInDays, parseISO } from 'date-fns'
+import { AlertCircle, Plus, Pencil, GripVertical } from 'lucide-vue-next'
 import Modal from '../common/Modal.vue'
 import TaskEditor from '../editors/TaskEditor.vue'
 import EpicEditor from '../editors/EpicEditor.vue'
@@ -10,18 +11,7 @@ import MilestoneEditor from '../editors/MilestoneEditor.vue'
 import { Flag } from 'lucide-vue-next'
 
 const store = useCapacityStore()
-
-// Timeline Setup
-const startDate = ref(startOfWeek(new Date(), { weekStartsOn: 1 }))
-const daysToShow = 21 // 3 weeks
-
-const timelineDates = computed(() => {
-  const dates = []
-  for (let i = 0; i < daysToShow; i++) {
-    dates.push(addDays(startDate.value, i))
-  }
-  return dates
-})
+const dateStore = useDateStore()
 
 // Editor State
 const isTaskEditorOpen = ref(false)
@@ -92,17 +82,16 @@ function getTaskGridStyle(task: any) {
   const end = parseISO(task.end)
   
   // Calculate relative days (0-based index)
-  let startIdx = differenceInDays(start, startDate.value)
+  let startIdx = differenceInDays(start, dateStore.startDate)
   let duration = differenceInDays(end, start) + 1
   
   // CSS Grid is 1-based
   let gridStart = startIdx + 1
   let gridEnd = gridStart + duration
 
-  // Clamp values to the visible grid (lines 1 to 22) to avoid negative/implicit column issues
-  // Line 1 is the start of the first column. Line 22 is the end of the 21st column.
+  // Clamp values to the visible grid
   gridStart = Math.max(1, gridStart)
-  gridEnd = Math.min(22, gridEnd)
+  gridEnd = Math.min(dateStore.daysToShow + 1, gridEnd)
 
   return {
     gridColumnStart: gridStart,
@@ -115,8 +104,8 @@ function getTaskGridStyle(task: any) {
 function shouldRenderTask(task: any) {
     const start = parseISO(task.start)
     const end = parseISO(task.end)
-    const viewStart = startDate.value
-    const viewEnd = addDays(viewStart, daysToShow - 1)
+    const viewStart = dateStore.startDate
+    const viewEnd = addDays(viewStart, dateStore.daysToShow - 1)
     
     // Check overlap
     return start <= viewEnd && end >= viewStart
@@ -132,7 +121,7 @@ function getEpicDependencies(epic: any) {
     // Helper to get X position (Grid Units 0-21) for a date
     const getX = (dateStr: string, isEnd: boolean = false) => {
         const date = parseISO(dateStr)
-        const diff = differenceInDays(date, startDate.value)
+        const diff = differenceInDays(date, dateStore.startDate)
         // If isEnd, we want the end of that day, so +1 day worth of width
         const offset = isEnd ? 1 : 0
         return (diff + offset) // Return grid units, not percentage (ViewBox handles scaling)
@@ -202,10 +191,6 @@ function formatAssignments(assignments: any[]) {
   return assignments.map(a => `${getResourceName(a.resourceId)} (${a.effort}%)`).join(', ')
 }
 
-function nextWeek() { startDate.value = addDays(startDate.value, 7) }
-function prevWeek() { startDate.value = addDays(startDate.value, -7) }
-function scrollToToday() { startDate.value = startOfWeek(new Date(), { weekStartsOn: 1 }) }
-
 function getEpicLayout(epic: any) {
     // Clone and sort to not mutate original if it was reactive in a way that matters
     const tasks = [...epic.tasks].sort((a: any, b: any) => new Date(a.start).getTime() - new Date(b.start).getTime())
@@ -257,22 +242,18 @@ function getEpicLayout(epic: any) {
             </button>
         </div>
 
-      <div class="date-controls">
-        <button class="control-btn" @click="prevWeek"><ChevronLeft :size="16" /></button>
-        <button class="control-btn" @click="scrollToToday"><Calendar :size="16" /></button>
-        <span class="current-range">
-          {{ format(timelineDates[0], 'MMM d') }} - {{ format(timelineDates[timelineDates.length-1], 'MMM d, yyyy') }}
-        </span>
-        <button class="control-btn" @click="nextWeek"><ChevronRight :size="16" /></button>
-      </div>
+
     </div>
 
     <!-- Scrollable Grid Container -->
     <div class="gantt-scroll-area">
       <!-- Header Row (Grid) -->
-      <div class="timeline-header grid-row">
+      <div 
+        class="timeline-header grid-row"
+        :style="{ gridTemplateColumns: `repeat(${dateStore.daysToShow}, 1fr)` }"
+      >
         <div 
-          v-for="date in timelineDates" 
+          v-for="date in dateStore.timelineDates" 
           :key="date.toString()"
           class="chart-header-cell"
           :class="{ 'weekend': date.getDay() === 0 || date.getDay() === 6 }"
@@ -289,7 +270,7 @@ function getEpicLayout(epic: any) {
                 :key="milestone.id"
                 class="milestone-label-container"
                 :style="{ 
-                    gridColumnStart: differenceInDays(parseISO(milestone.date), startDate) + 1,
+                    gridColumnStart: differenceInDays(parseISO(milestone.date), dateStore.startDate) + 1,
                     gridColumnEnd: 'span 2' 
                 }"
              >
@@ -313,14 +294,17 @@ function getEpicLayout(epic: any) {
                 <!-- The structure is gantt-scroll-area > timeline-header, then gantt-body. -->
                 <!-- Inside gantt-body we have milestones overlay and then epics. -->
                 
-                <div class="milestone-overlay grid-row">
+                <div 
+                    class="milestone-overlay grid-row"
+                    :style="{ gridTemplateColumns: `repeat(${dateStore.daysToShow}, 1fr)` }"
+                >
                     <!-- Global Lines (All Milestones get a line) -->
                     <div 
                         v-for="milestone in store.milestones" 
                         :key="milestone.id"
                         class="milestone-line"
                         :style="{ 
-                            gridColumnStart: differenceInDays(parseISO(milestone.date), startDate) + 2, 
+                            gridColumnStart: differenceInDays(parseISO(milestone.date), dateStore.startDate) + 2, 
                             gridColumnEnd: 'span 1',
                             gridRow: '1 / -1', /* Force full height span */
                             borderColor: milestone.color
@@ -364,13 +348,26 @@ function getEpicLayout(epic: any) {
                 <!-- Positioned absolutely relative to the epic-row (sticky container) -->
                 <!-- Epic-Specific Milestones (Inside Header for Z-Index Control) -->
                 <!-- Epic-Specific Milestones (Using Grid for Perfect Alignment) -->
-                <div class="epic-milestones-grid">
+                <div 
+                    class="epic-milestones-grid"
+                    :style="{ 
+                        display: 'grid',
+                        gridTemplateColumns: `repeat(${dateStore.daysToShow}, 1fr)`,
+                        width: '100%',
+                        position: 'absolute',
+                        left: 0,
+                        right: 0,
+                        height: '100%',
+                        pointerEvents: 'none',
+                        zIndex: 20
+                    }"
+                >
                     <div 
                         v-for="milestone in store.milestones.filter(m => m.epicId === epic.id)" 
                         :key="milestone.id"
                         class="epic-milestone-item"
                         :style="{
-                            gridColumnStart: differenceInDays(parseISO(milestone.date), startDate) + 2,
+                            gridColumnStart: differenceInDays(parseISO(milestone.date), dateStore.startDate) + 2,
                             gridColumnEnd: 'span 1',
                             gridRow: '1 / -1'
                         }"
@@ -402,7 +399,7 @@ function getEpicLayout(epic: any) {
                 <!-- Dependency Arrows Layer -->
                 <!-- Calculate total height based on packed lanes -->
                 <svg class="dependency-layer" 
-                     :viewBox="`0 0 21 ${getEpicLayout(epic).lanes.length * 48}`" 
+                     :viewBox="`0 0 ${dateStore.daysToShow} ${getEpicLayout(epic).lanes.length * 48}`" 
                      preserveAspectRatio="none"
                 >
                     <defs>
@@ -425,9 +422,12 @@ function getEpicLayout(epic: any) {
 
                 <div v-for="(lane, laneIdx) in getEpicLayout(epic).lanes" :key="laneIdx" class="task-row">
                     <!-- Grid Lines (Background) -->
-                    <div class="grid-lines grid-row">
+                    <div 
+                        class="grid-lines grid-row"
+                        :style="{ gridTemplateColumns: `repeat(${dateStore.daysToShow}, 1fr)` }"
+                    >
                          <div 
-                            v-for="date in timelineDates" 
+                            v-for="date in dateStore.timelineDates" 
                             :key="date.toString()"
                             class="grid-cell"
                             :class="{ 'weekend': date.getDay() === 0 || date.getDay() === 6 }"
@@ -435,7 +435,10 @@ function getEpicLayout(epic: any) {
                     </div>
 
                     <!-- Task Bar (Overlaid Grid) -->
-                     <div class="task-layer grid-row">
+                     <div 
+                        class="task-layer grid-row"
+                        :style="{ gridTemplateColumns: `repeat(${dateStore.daysToShow}, 1fr)` }"
+                     >
                         <template v-for="task in lane" :key="task.id">
                             <div 
                                 v-if="shouldRenderTask(task)"
@@ -504,10 +507,10 @@ function getEpicLayout(epic: any) {
 /* Grid System */
 
 /* Grid System */
-/* One column for each day (21 columns) */
+/* Dynamic columns via inline style */
 .grid-row {
     display: grid;
-    grid-template-columns: repeat(21, 1fr);
+    /* grid-template-columns set via style binding */
     width: 100%;
 }
 
@@ -530,6 +533,21 @@ function getEpicLayout(epic: any) {
 }
 
 /* ... existing styles ... */
+
+.chart-header-cell {
+    padding: 0.5rem;
+    text-align: center;
+    border-right: 1px solid var(--border-color);
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap; /* Prevent wrapping */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
 
 .gantt-body { 
     position: relative; 
@@ -654,7 +672,7 @@ function getEpicLayout(epic: any) {
     position: absolute;
     left: 0; right: 0; top: 0; bottom: 0;
     display: grid;
-    grid-template-columns: repeat(21, 1fr);
+    /* grid-template-columns set via style binding */
     grid-template-rows: 1fr; /* Force single row */
     pointer-events: none;
     z-index: 5;

@@ -1,25 +1,15 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useCapacityStore } from '../../stores/capacity'
-import { addDays, format, startOfWeek } from 'date-fns'
+import { useDateStore } from '../../stores/date'
+import { format } from 'date-fns'
 import HeatmapCell from './HeatmapCell.vue'
-import { ChevronLeft, ChevronRight, User, Plus, Edit, Calendar, GripVertical } from 'lucide-vue-next'
+import { User, Plus, Edit, GripVertical } from 'lucide-vue-next'
 import Modal from '../common/Modal.vue'
 import ResourceEditor from '../editors/ResourceEditor.vue'
 
 const store = useCapacityStore()
-
-// Timeline State
-const startDate = ref(startOfWeek(new Date(), { weekStartsOn: 1 })) // Start from current week (Monday)
-const daysToShow = 21 // 3 weeks view by default
-
-const timelineDates = computed(() => {
-  const dates = []
-  for (let i = 0; i < daysToShow; i++) {
-    dates.push(addDays(startDate.value, i))
-  }
-  return dates
-})
+const dateStore = useDateStore()
 
 // Editor State
 const isEditorOpen = ref(false)
@@ -66,17 +56,6 @@ function onDrop(_event: DragEvent, targetIndex: number) {
     draggedResourceIndex.value = null
 }
 
-// Navigation
-function nextWeek() {
-  startDate.value = addDays(startDate.value, 7)
-}
-function prevWeek() {
-  startDate.value = addDays(startDate.value, -7)
-}
-function scrollToToday() {
-  startDate.value = startOfWeek(new Date(), { weekStartsOn: 1 })
-}
-
 </script>
 
 <template>
@@ -90,20 +69,7 @@ function scrollToToday() {
         </button>
       </div>
 
-      <div class="date-controls">
-        <button class="control-btn" @click="prevWeek">
-          <ChevronLeft :size="16" />
-        </button>
-        <button class="control-btn" @click="scrollToToday" title="Jump to Today">
-          <Calendar :size="16" />
-        </button>
-        <span class="current-range">
-          {{ format(timelineDates[0], 'MMM d') }} - {{ format(timelineDates[timelineDates.length-1], 'MMM d, yyyy') }}
-        </span>
-        <button class="control-btn" @click="nextWeek">
-          <ChevronRight :size="16" />
-        </button>
-      </div>
+
     </div>
 
     <!-- The Grid -->
@@ -113,7 +79,7 @@ function scrollToToday() {
           <tr>
             <th class="resource-header-cell sticky-col">Resource</th>
             <th 
-              v-for="date in timelineDates" 
+              v-for="date in dateStore.timelineDates" 
               :key="date.toString()"
               class="sticky-header"
             >
@@ -156,7 +122,7 @@ function scrollToToday() {
 
             <!-- Daily Cells -->
             <td 
-              v-for="date in timelineDates" 
+              v-for="date in dateStore.timelineDates" 
               :key="date.toString()"
               class="day-cell-wrapper"
               :class="{ 'weekend': date.getDay() === 0 || date.getDay() === 6 }"
