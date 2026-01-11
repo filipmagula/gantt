@@ -115,6 +115,12 @@ function shouldRenderTask(task: any) {
     return start <= viewEnd && end >= viewStart
 }
 
+function shouldRenderMilestone(milestone: any) {
+    const date = parseISO(milestone.date)
+    const diff = differenceInDays(date, dateStore.startDate)
+    return diff >= 0 && diff < dateStore.daysToShow
+}
+
 function getResourceName(id: string) {
   return store.resources.find(r => r.id === id)?.name.split(' ')[0] || id
 }
@@ -268,20 +274,31 @@ function getEpicLayout(epic: any) {
 
         <!-- Global Milestones Label Overlay (Only for milestones with NO epicId) -->
         <!-- We reuse the grid system to place labels. -->
-        <div class="milestone-labels-layer grid-row" style="position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;">
+        <div 
+            class="milestone-labels-layer grid-row" 
+            :style="{ 
+                position: 'absolute', 
+                top: 0, 
+                left: 0, 
+                width: '100%', 
+                height: '100%', 
+                pointerEvents: 'none',
+                gridTemplateColumns: `repeat(${dateStore.daysToShow}, 1fr)` 
+            }"
+        >
              <div 
-                v-for="milestone in store.milestones.filter(m => !m.epicId)" 
+                v-for="milestone in store.milestones.filter(m => !m.epicId && shouldRenderMilestone(m))" 
                 :key="milestone.id"
                 class="milestone-label-container"
                 :style="{ 
-                    gridColumnStart: differenceInDays(parseISO(milestone.date), dateStore.startDate) + 1,
-                    gridColumnEnd: 'span 2' 
+                    gridColumnStart: differenceInDays(parseISO(milestone.date), dateStore.startDate) + 2,
+                    gridColumnEnd: 'span 1' 
                 }"
              >
                 <div class="milestone-label global" 
-                     :style="{ backgroundColor: milestone.color, left: '50%' }"
+                     :style="{ backgroundColor: milestone.color }"
                      @click.stop="openMilestoneEditor(milestone.id)"
-                     style="pointer-events: auto; cursor: pointer; transform: translateX(-50%);"
+                     style="pointer-events: auto; cursor: pointer;"
                 >
                     <Flag :size="10" fill="currentColor" />
                     <span>{{ milestone.title }}</span>
@@ -315,6 +332,7 @@ function getEpicLayout(epic: any) {
                             v-for="milestone in store.milestones" 
                             :key="milestone.id"
                             class="milestone-line"
+                            v-show="shouldRenderMilestone(milestone)"
                             :style="{ 
                                 gridColumnStart: differenceInDays(parseISO(milestone.date), dateStore.startDate) + 2, 
                                 gridColumnEnd: 'span 1',
@@ -368,7 +386,7 @@ function getEpicLayout(epic: any) {
                                 }"
                             >
                                 <div 
-                                    v-for="milestone in store.milestones.filter(m => m.epicId === epic.id)" 
+                                    v-for="milestone in store.milestones.filter(m => m.epicId === epic.id && shouldRenderMilestone(m))" 
                                     :key="milestone.id"
                                     class="epic-milestone-item"
                                     :style="{
@@ -730,12 +748,16 @@ function getEpicLayout(epic: any) {
 
 .milestone-label.global {
     top: 6px; /* Just below top border of header */
+    left: 0;
+    transform: translateX(-50%); /* Still center on the line */
 }
 
 .milestone-label-container {
     position: relative;
     height: 100%;
-    /* border-left: 1px solid red; debug */
+    display: flex; /* New */
+    align-items: flex-start; /* Align top? */
+    justify-content: flex-start; /* Align left (at the line) */
 }
 
 .drag-handle {

@@ -36,7 +36,8 @@ function handleExport() {
   const min = String(now.getMinutes()).padStart(2, '0')
   const ss = String(now.getSeconds()).padStart(2, '0')
   
-  a.download = `capacity-plan-${yyyy}-${mm}-${dd}_${hh}-${min}-${ss}.json`
+  const safeName = store.appName.toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'capacity-plan'
+  a.download = `${safeName}-${yyyy}-${mm}-${dd}_${hh}-${min}-${ss}.json`
   
   a.click()
   URL.revokeObjectURL(url)
