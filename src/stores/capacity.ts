@@ -300,6 +300,20 @@ export const useCapacityStore = defineStore('capacity', () => {
         }
     }
 
+    function clearProject(options: { names: boolean, resources: boolean, epics: boolean }) {
+        console.log("Executing clearProject with options:", options)
+        if (options.names) {
+            appName.value = "New Project"
+        }
+        if (options.resources) {
+            resources.value = []
+        }
+        if (options.epics) {
+            epics.value = []
+            milestones.value = []
+        }
+    }
+
     return {
         resources,
         epics,
@@ -325,6 +339,7 @@ export const useCapacityStore = defineStore('capacity', () => {
         deleteMilestone,
         updateAppName,
         reorderResources,
-        reorderEpics
+        reorderEpics,
+        clearProject
     }
 })

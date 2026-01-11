@@ -4,12 +4,16 @@ import { useCapacityStore } from '../../stores/capacity'
 import { useDateStore } from '../../stores/date'
 import { format } from 'date-fns'
 import HeatmapCell from './HeatmapCell.vue'
-import { User, Plus, Edit, GripVertical } from 'lucide-vue-next'
+import { User, Plus, Edit, GripVertical, Upload } from 'lucide-vue-next'
 import Modal from '../common/Modal.vue'
 import ResourceEditor from '../editors/ResourceEditor.vue'
 
 const store = useCapacityStore()
 const dateStore = useDateStore()
+
+const emit = defineEmits<{
+  (e: 'import'): void
+}>()
 
 // Editor State
 const isEditorOpen = ref(false)
@@ -91,7 +95,24 @@ function onDrop(_event: DragEvent, targetIndex: number) {
           </tr>
         </thead>
         <tbody>
+           <tr v-if="store.resources.length === 0">
+             <td :colspan="1 + dateStore.timelineDates.length" class="empty-row">
+                <div class="empty-state">
+                    <p>Add new resource or import existing project</p>
+                    <div class="empty-actions">
+                        <button class="btn-primary" @click="openAddResource">
+                            <Plus :size="16" /> Add Resource
+                        </button>
+                        <button class="btn-secondary" @click="emit('import')">
+                            <Upload :size="16" /> Import Project
+                        </button>
+                    </div>
+                </div>
+             </td>
+           </tr>
+          
           <tr 
+            v-else
             v-for="(resource, index) in store.resources" 
             :key="resource.id"
             draggable="true"
@@ -179,7 +200,7 @@ function onDrop(_event: DragEvent, targetIndex: number) {
   overflow: auto;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  /* background: rgba(0,0,0,0.1); Removed to match Gantt base color */
+  background: rgba(0,0,0,0.1);
 }
 
 .heatmap-table {
@@ -304,5 +325,28 @@ th, td {
 .resource-row.dragging {
     opacity: 0.5;
     background: rgba(255, 255, 255, 0.05);
+}
+
+.empty-row {
+   height: 200px; /* Minimum height for empty state */
+   vertical-align: middle;
+}
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  gap: 1rem;
+}
+.empty-state p {
+  opacity: 0.7;
+}
+.empty-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
 }
 </style>

@@ -3,9 +3,13 @@ import { ref } from 'vue'
 import { useCapacityStore } from '../../stores/capacity'
 import { useDateStore } from '../../stores/date'
 import { addDays, format, differenceInDays, parseISO } from 'date-fns'
-import { AlertCircle, Plus, Pencil, GripVertical } from 'lucide-vue-next'
+import { AlertCircle, Plus, Pencil, GripVertical, Upload } from 'lucide-vue-next'
 import Modal from '../common/Modal.vue'
 import TaskEditor from '../editors/TaskEditor.vue'
+
+const emit = defineEmits<{
+  (e: 'import'): void
+}>()
 import EpicEditor from '../editors/EpicEditor.vue'
 import MilestoneEditor from '../editors/MilestoneEditor.vue'
 import { Flag } from 'lucide-vue-next'
@@ -288,182 +292,181 @@ function getEpicLayout(epic: any) {
 
             <!-- Epics & Tasks -->
             <div class="gantt-body">
-                <!-- Milestones Overlay -->
-                <!-- (Rendered above in its own grid-row container if we wanted, but let's look at structure) -->
-                <!-- Wait, the previous edit inserted milestone-overlay then closed divs weirdly. Let's fix structure. -->
-                <!-- The structure is gantt-scroll-area > timeline-header, then gantt-body. -->
-                <!-- Inside gantt-body we have milestones overlay and then epics. -->
+                <div v-if="store.epics.length === 0" class="empty-state">
+                    <p>Add new epic or import existing project</p>
+                    <div class="empty-actions">
+                        <button class="btn-primary" @click="openEpicEditor()">
+                            <Plus :size="16" /> Add Epic
+                        </button>
+                        <button class="btn-secondary" @click="emit('import')">
+                            <Upload :size="16" /> Import Project
+                        </button>
+                    </div>
+                </div>
                 
-                <div 
-                    class="milestone-overlay grid-row"
-                    :style="{ gridTemplateColumns: `repeat(${dateStore.daysToShow}, 1fr)` }"
-                >
-                    <!-- Global Lines (All Milestones get a line) -->
+                <template v-else>
+                    <!-- Milestones Overlay -->
                     <div 
-                        v-for="milestone in store.milestones" 
-                        :key="milestone.id"
-                        class="milestone-line"
-                        :style="{ 
-                            gridColumnStart: differenceInDays(parseISO(milestone.date), dateStore.startDate) + 2, 
-                            gridColumnEnd: 'span 1',
-                            gridRow: '1 / -1', /* Force full height span */
-                            borderColor: milestone.color
-                        }"
-                        :title="`${milestone.title} (${milestone.date})`"
-                        @click="openMilestoneEditor(milestone.id)"
-                     >
-                        <!-- No Label Here anymore, labels are in headers -->
-                     </div>
-                </div>
-
-        <template v-for="(epic, index) in store.epics" :key="epic.id">
-            <div 
-                class="epic-container"
-                draggable="true"
-                @dragstart="onEpicDragStart($event, index)"
-                @dragover="onEpicDragOver"
-                @drop="onEpicDrop($event, index)"
-                :class="{ 'dragging': draggedEpicIndex === index }"
-            >
-            <!-- Epic Header Row -->
-            <div class="epic-row">
-                <div class="epic-info">
-                  <div class="drag-handle" @click.stop title="Drag to reorder">
-                    <GripVertical :size="16" />
-                  </div>
-                  <div class="epic-label" :style="{ borderColor: epic.color }">{{ epic.title }}</div>
-                  <button class="icon-btn-ghost" title="Edit Epic" @click="openEpicEditor(epic.id)">
-                      <Pencil :size="12" />
-                  </button>
-                  <button class="icon-btn-ghost" title="Add Task to Epic" @click="openTaskEditor(undefined, epic.id)">
-                      <Plus :size="14" />
-                  </button>
-                </div>
-
-                <!-- Milestone rendering logic implemented below -->
-
-
-
-                <!-- Epic-Specific Milestones (Inside Header for Z-Index Control) -->
-                <!-- Positioned absolutely relative to the epic-row (sticky container) -->
-                <!-- Epic-Specific Milestones (Inside Header for Z-Index Control) -->
-                <!-- Epic-Specific Milestones (Using Grid for Perfect Alignment) -->
-                <div 
-                    class="epic-milestones-grid"
-                    :style="{ 
-                        display: 'grid',
-                        gridTemplateColumns: `repeat(${dateStore.daysToShow}, 1fr)`,
-                        width: '100%',
-                        position: 'absolute',
-                        left: 0,
-                        right: 0,
-                        height: '100%',
-                        pointerEvents: 'none',
-                        zIndex: 20
-                    }"
-                >
-                    <div 
-                        v-for="milestone in store.milestones.filter(m => m.epicId === epic.id)" 
-                        :key="milestone.id"
-                        class="epic-milestone-item"
-                        :style="{
-                            gridColumnStart: differenceInDays(parseISO(milestone.date), dateStore.startDate) + 2,
-                            gridColumnEnd: 'span 1',
-                            gridRow: '1 / -1'
-                        }"
+                        class="milestone-overlay grid-row"
+                        :style="{ gridTemplateColumns: `repeat(${dateStore.daysToShow}, 1fr)` }"
                     >
-
-                        <!-- Label (Centered on line) -->
+                        <!-- Global Lines (All Milestones get a line) -->
                         <div 
-                            class="epic-milestone-label"
-                            :style="{ backgroundColor: milestone.color }"
+                            v-for="milestone in store.milestones" 
+                            :key="milestone.id"
+                            class="milestone-line"
+                            :style="{ 
+                                gridColumnStart: differenceInDays(parseISO(milestone.date), dateStore.startDate) + 2, 
+                                gridColumnEnd: 'span 1',
+                                gridRow: '1 / -1', /* Force full height span */
+                                borderColor: milestone.color
+                            }"
+                            :title="`${milestone.title} (${milestone.date})`"
                             @click="openMilestoneEditor(milestone.id)"
-                            title="Edit Milestone"
                         >
-                            <Flag :size="10" fill="currentColor" />
-                            <span>{{ milestone.title }}</span>
+                            <!-- No Label Here anymore, labels are in headers -->
                         </div>
                     </div>
-                </div>
 
+                    <template v-for="(epic, index) in store.epics" :key="epic.id">
+                        <div 
+                            class="epic-container"
+                            draggable="true"
+                            @dragstart="onEpicDragStart($event, index)"
+                            @dragover="onEpicDragOver"
+                            @drop="onEpicDrop($event, index)"
+                            :class="{ 'dragging': draggedEpicIndex === index }"
+                        >
+                        <!-- Epic Header Row -->
+                        <div class="epic-row">
+                            <div class="epic-info">
+                            <div class="drag-handle" @click.stop title="Drag to reorder">
+                                <GripVertical :size="16" />
+                            </div>
+                            <div class="epic-label" :style="{ borderColor: epic.color }">{{ epic.title }}</div>
+                            <button class="icon-btn-ghost" title="Edit Epic" @click="openEpicEditor(epic.id)">
+                                <Pencil :size="12" />
+                            </button>
+                            <button class="icon-btn-ghost" title="Add Task to Epic" @click="openTaskEditor(undefined, epic.id)">
+                                <Plus :size="14" />
+                            </button>
+                            </div>
 
-            </div>
-            
-            <!-- Epic-Specific Milestones Layer -->
-            <!-- This layer scrolls with the grid, but we visually position items upwards to overlap the sticky header. -->
-            <!-- Old epic-milestone-layer removed -->
-
-            <!-- Task Rows Container (Relative for SVG Layer) -->
-            <div class="epic-tasks-body" style="position: relative;">
-                
-                <!-- Dependency Arrows Layer -->
-                <!-- Calculate total height based on packed lanes -->
-                <svg class="dependency-layer" 
-                     :viewBox="`0 0 ${dateStore.daysToShow} ${getEpicLayout(epic).lanes.length * 48}`" 
-                     preserveAspectRatio="none"
-                >
-                    <defs>
-                        <marker id="arrowhead" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
-                            <polygon points="0 0, 6 2, 0 4" fill="#64748b" />
-                        </marker>
-                    </defs>
-                    <path 
-                        v-for="path in getEpicDependencies(epic)"
-                        :key="path.id"
-                        :d="path.d"
-                        stroke="#64748b"
-                        stroke-width="2px"
-                        fill="none"
-                        marker-end="url(#arrowhead)"
-                        vector-effect="non-scaling-stroke" 
-                        opacity="0.6"
-                    />
-                </svg>
-
-                <div v-for="(lane, laneIdx) in getEpicLayout(epic).lanes" :key="laneIdx" class="task-row">
-                    <!-- Grid Lines (Background) -->
-                    <div 
-                        class="grid-lines grid-row"
-                        :style="{ gridTemplateColumns: `repeat(${dateStore.daysToShow}, 1fr)` }"
-                    >
-                         <div 
-                            v-for="date in dateStore.timelineDates" 
-                            :key="date.toString()"
-                            class="grid-cell"
-                            :class="{ 'weekend': date.getDay() === 0 || date.getDay() === 6 }"
-                        ></div>
-                    </div>
-
-                    <!-- Task Bar (Overlaid Grid) -->
-                     <div 
-                        class="task-layer grid-row"
-                        :style="{ gridTemplateColumns: `repeat(${dateStore.daysToShow}, 1fr)` }"
-                     >
-                        <template v-for="task in lane" :key="task.id">
+                            <!-- Epic-Specific Milestones (Using Grid for Perfect Alignment) -->
                             <div 
-                                v-if="shouldRenderTask(task)"
-                                class="task-bar"
-                                :class="{ 'overloaded': store.isTaskOverloaded(task.id) }"
-                                :style="{ ...getTaskGridStyle(task), backgroundColor: epic.color || '#6366f1' }"
-                                :title="`${task.name}\n${formatAssignments(task.assignments)}`"
-                                @click.stop="openTaskEditor(task.id)"
+                                class="epic-milestones-grid"
+                                :style="{ 
+                                    display: 'grid',
+                                    gridTemplateColumns: `repeat(${dateStore.daysToShow}, 1fr)`,
+                                    width: '100%',
+                                    position: 'absolute',
+                                    left: 0,
+                                    right: 0,
+                                    height: '100%',
+                                    pointerEvents: 'none',
+                                    zIndex: 20
+                                }"
                             >
-                                <div class="task-content">
-                                    <span class="task-name">{{ task.name }}</span>
-                                    <span class="task-assignments">{{ formatAssignments(task.assignments) }}</span>
-                                </div>
-                                <div v-if="store.isTaskOverloaded(task.id)" class="error-indicator">
-                                    <AlertCircle :size="14" />
+                                <div 
+                                    v-for="milestone in store.milestones.filter(m => m.epicId === epic.id)" 
+                                    :key="milestone.id"
+                                    class="epic-milestone-item"
+                                    :style="{
+                                        gridColumnStart: differenceInDays(parseISO(milestone.date), dateStore.startDate) + 2,
+                                        gridColumnEnd: 'span 1',
+                                        gridRow: '1 / -1'
+                                    }"
+                                >
+
+                                    <!-- Label (Centered on line) -->
+                                    <div 
+                                        class="epic-milestone-label"
+                                        :style="{ backgroundColor: milestone.color }"
+                                        @click="openMilestoneEditor(milestone.id)"
+                                        title="Edit Milestone"
+                                    >
+                                        <Flag :size="10" fill="currentColor" />
+                                        <span>{{ milestone.title }}</span>
+                                    </div>
                                 </div>
                             </div>
-                        </template>
-                    </div>
-                </div>
+
+
+                        </div>
+                        
+                        <!-- Epic-Specific Milestones Layer -->
+
+                        <!-- Task Rows Container (Relative for SVG Layer) -->
+                        <div class="epic-tasks-body" style="position: relative;">
+                            
+                            <!-- Dependency Arrows Layer -->
+                            <svg class="dependency-layer" 
+                                :viewBox="`0 0 ${dateStore.daysToShow} ${getEpicLayout(epic).lanes.length * 48}`" 
+                                preserveAspectRatio="none"
+                            >
+                                <defs>
+                                    <marker id="arrowhead" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
+                                        <polygon points="0 0, 6 2, 0 4" fill="#64748b" />
+                                    </marker>
+                                </defs>
+                                <path 
+                                    v-for="path in getEpicDependencies(epic)"
+                                    :key="path.id"
+                                    :d="path.d"
+                                    stroke="#64748b"
+                                    stroke-width="2px"
+                                    fill="none"
+                                    marker-end="url(#arrowhead)"
+                                    vector-effect="non-scaling-stroke" 
+                                    opacity="0.6"
+                                />
+                            </svg>
+
+                            <div v-for="(lane, laneIdx) in getEpicLayout(epic).lanes" :key="laneIdx" class="task-row">
+                                <!-- Grid Lines (Background) -->
+                                <div 
+                                    class="grid-lines grid-row"
+                                    :style="{ gridTemplateColumns: `repeat(${dateStore.daysToShow}, 1fr)` }"
+                                >
+                                    <div 
+                                        v-for="date in dateStore.timelineDates" 
+                                        :key="date.toString()"
+                                        class="grid-cell"
+                                        :class="{ 'weekend': date.getDay() === 0 || date.getDay() === 6 }"
+                                    ></div>
+                                </div>
+
+                                <!-- Task Bar (Overlaid Grid) -->
+                                <div 
+                                    class="task-layer grid-row"
+                                    :style="{ gridTemplateColumns: `repeat(${dateStore.daysToShow}, 1fr)` }"
+                                >
+                                    <template v-for="task in lane" :key="task.id">
+                                        <div 
+                                            v-if="shouldRenderTask(task)"
+                                            class="task-bar"
+                                            :class="{ 'overloaded': store.isTaskOverloaded(task.id) }"
+                                            :style="{ ...getTaskGridStyle(task), backgroundColor: epic.color || '#6366f1' }"
+                                            :title="`${task.name}\n${formatAssignments(task.assignments)}`"
+                                            @click.stop="openTaskEditor(task.id)"
+                                        >
+                                            <div class="task-content">
+                                                <span class="task-name">{{ task.name }}</span>
+                                                <span class="task-assignments">{{ formatAssignments(task.assignments) }}</span>
+                                            </div>
+                                            <div v-if="store.isTaskOverloaded(task.id)" class="error-indicator">
+                                                <AlertCircle :size="14" />
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- End Epic Tasks Body -->
+                        </div>
+                    </template>
+                </template>
             </div>
-            <!-- End Epic Tasks Body -->
-            </div>
-        </template>
-      </div>
     </div>
 
     <!-- Modals -->
@@ -751,5 +754,25 @@ function getEpicLayout(epic: any) {
 .epic-container.dragging {
     opacity: 0.4;
     background: rgba(255, 255, 255, 0.05);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  gap: 1rem;
+  min-height: 200px; /* Ensure visible area */
+}
+.empty-state p {
+  opacity: 0.7;
+}
+.empty-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
 }
 </style>

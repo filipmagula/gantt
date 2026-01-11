@@ -10,11 +10,15 @@ import AppNameEditor from './components/editors/AppNameEditor.vue'
 import ToastContainer from './components/ui/ToastContainer.vue'
 import DateRangeControls from './components/common/DateRangeControls.vue'
 
+import { Trash2 } from 'lucide-vue-next' // Import Trash2
+import ClearProjectModal from './components/common/ClearProjectModal.vue'
+
 const currentView = ref<'heatmap' | 'gantt'>('heatmap')
 const store = useCapacityStore()
 const notifications = useNotificationStore()
 const fileInput = ref<HTMLInputElement | null>(null)
 const isNameEditorOpen = ref(false)
+const isClearModalOpen = ref(false)
 
 // Export Handler
 function handleExport() {
@@ -36,6 +40,21 @@ function handleExport() {
   
   a.click()
   URL.revokeObjectURL(url)
+}
+
+function handleClearProject(options: { export: boolean, names: boolean, resources: boolean, epics: boolean }) {
+  if (options.export) {
+    handleExport()
+  }
+  
+  store.clearProject({
+    names: options.names,
+    resources: options.resources,
+    epics: options.epics
+  })
+  
+  notifications.add('Project data cleared successfully', 'success')
+  isClearModalOpen.value = false
 }
 
 // Import Handler
@@ -106,16 +125,19 @@ function handleFileImport(event: Event) {
         <button class="icon-btn" title="Export JSON" @click="handleExport">
           <Download :size="18" />
         </button>
+        <button class="icon-btn" title="Clear Project" @click="isClearModalOpen = true">
+          <Trash2 :size="18" />
+        </button>
       </div>
     </header>
 
     <main class="main-content">
       <div v-if="currentView === 'heatmap'" class="view-container">
-        <ResourceHeatmap />
+        <ResourceHeatmap @import="triggerImport" />
       </div>
       
       <div v-else class="view-container">
-        <GanttChart />
+        <GanttChart @import="triggerImport" />
       </div>
     </main>
 
@@ -130,6 +152,11 @@ function handleFileImport(event: Event) {
         @close="isNameEditorOpen = false" 
       />
     </Modal>
+    <ClearProjectModal 
+      :isOpen="isClearModalOpen"
+      @close="isClearModalOpen = false"
+      @confirm="handleClearProject"
+    />
     <ToastContainer />
   </div>
 </template>
