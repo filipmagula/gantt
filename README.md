@@ -27,6 +27,7 @@ Download a JSON based demo project from here: <https://github.com/filipmagula/ga
 
 - **Capacity Heatmap**: Visualize team workload intensity (Green/Yellow/Red) to spot bottlenecks instantly.
 - **Role Awareness**: Color-coded resource roles (Management, Dev, QA, etc.).
+- **Drag & Drop Reordering**: Easily reorganize resources in the heatmap view to group teams or prioritize individuals.
 
 ## Application Preview
 

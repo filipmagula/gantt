@@ -280,6 +280,26 @@ export const useCapacityStore = defineStore('capacity', () => {
         appName.value = name
     }
 
+    function reorderResources(fromIndex: number, toIndex: number) {
+        if (fromIndex < 0 || fromIndex >= resources.value.length || toIndex < 0 || toIndex >= resources.value.length) {
+            return
+        }
+        const item = resources.value.splice(fromIndex, 1)[0]
+        if (item) {
+            resources.value.splice(toIndex, 0, item)
+        }
+    }
+
+    function reorderEpics(fromIndex: number, toIndex: number) {
+        if (fromIndex < 0 || fromIndex >= epics.value.length || toIndex < 0 || toIndex >= epics.value.length) {
+            return
+        }
+        const item = epics.value.splice(fromIndex, 1)[0]
+        if (item) {
+            epics.value.splice(toIndex, 0, item)
+        }
+    }
+
     return {
         resources,
         epics,
@@ -303,6 +323,8 @@ export const useCapacityStore = defineStore('capacity', () => {
         addMilestone,
         updateMilestone,
         deleteMilestone,
-        updateAppName
+        updateAppName,
+        reorderResources,
+        reorderEpics
     }
 })

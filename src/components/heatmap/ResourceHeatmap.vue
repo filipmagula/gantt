@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { useCapacityStore } from '../../stores/capacity'
 import { addDays, format, startOfWeek } from 'date-fns'
 import HeatmapCell from './HeatmapCell.vue'
-import { ChevronLeft, ChevronRight, User, Plus, Edit, Calendar } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, User, Plus, Edit, Calendar, GripVertical } from 'lucide-vue-next'
 import Modal from '../common/Modal.vue'
 import ResourceEditor from '../editors/ResourceEditor.vue'
 
@@ -38,6 +38,32 @@ function openEditResource(id: string) {
 function closeEditor() {
     isEditorOpen.value = false
     editingResourceId.value = ''
+}
+
+// Drag and Drop
+const draggedResourceIndex = ref<number | null>(null)
+
+function onDragStart(event: DragEvent, index: number) {
+    if (event.dataTransfer) {
+        draggedResourceIndex.value = index
+        event.dataTransfer.effectAllowed = 'move'
+        // Set a transparent image or custom drag image if needed, but default is usually okay for rows
+        // generic row styling might look weird, so let's stick to default for now
+    }
+}
+
+function onDragOver(event: DragEvent) {
+   event.preventDefault() // Necessary to allow dropping
+   if (event.dataTransfer) {
+       event.dataTransfer.dropEffect = 'move'
+   }
+}
+
+function onDrop(_event: DragEvent, targetIndex: number) {
+    if (draggedResourceIndex.value !== null && draggedResourceIndex.value !== targetIndex) {
+        store.reorderResources(draggedResourceIndex.value, targetIndex)
+    }
+    draggedResourceIndex.value = null
 }
 
 // Navigation
@@ -99,10 +125,22 @@ function scrollToToday() {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="resource in store.resources" :key="resource.id">
+          <tr 
+            v-for="(resource, index) in store.resources" 
+            :key="resource.id"
+            draggable="true"
+            @dragstart="onDragStart($event, index)"
+            @dragover="onDragOver"
+            @drop="onDrop($event, index)"
+            class="resource-row"
+            :class="{ 'dragging': draggedResourceIndex === index }"
+          >
             <!-- Resource Row Header - Clickable -->
             <td class="resource-cell sticky-col" @click="openEditResource(resource.id)">
               <div class="resource-info">
+                <div class="drag-handle" @click.stop>
+                    <GripVertical :size="16" />
+                </div>
                 <div class="avatar-placeholder" :style="{ background: resource.color || 'linear-gradient(135deg, var(--color-primary), #818cf8)' }">
                   <User :size="16" />
                 </div>
@@ -283,5 +321,22 @@ th, td {
   height: 48px;
   border-right: 1px solid rgba(255,255,255,0.03);
   border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+
+.drag-handle {
+    cursor: grab;
+    color: var(--color-text-muted);
+    opacity: 0.5;
+    display: flex;
+    align-items: center;
+    margin-right: 0.5rem;
+}
+.drag-handle:hover {
+    opacity: 1;
+}
+
+.resource-row.dragging {
+    opacity: 0.5;
+    background: rgba(255, 255, 255, 0.05);
 }
 </style>

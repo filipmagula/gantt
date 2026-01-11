@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import { useCapacityStore } from '../../stores/capacity'
 import { addDays, format, startOfWeek, differenceInDays, parseISO } from 'date-fns'
-import { ChevronLeft, ChevronRight, AlertCircle, Calendar, Plus, Pencil } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, AlertCircle, Calendar, Plus, Pencil, GripVertical } from 'lucide-vue-next'
 import Modal from '../common/Modal.vue'
 import TaskEditor from '../editors/TaskEditor.vue'
 import EpicEditor from '../editors/EpicEditor.vue'
@@ -33,6 +33,32 @@ const editingEpicId = ref('')
 
 const isMilestoneEditorOpen = ref(false)
 const editingMilestoneId = ref('')
+
+
+
+// Drag and Drop
+const draggedEpicIndex = ref<number | null>(null)
+
+function onEpicDragStart(event: DragEvent, index: number) {
+    if (event.dataTransfer) {
+        draggedEpicIndex.value = index
+        event.dataTransfer.effectAllowed = 'move'
+    }
+}
+
+function onEpicDragOver(event: DragEvent) {
+    event.preventDefault()
+    if (event.dataTransfer) {
+        event.dataTransfer.dropEffect = 'move'
+    }
+}
+
+function onEpicDrop(_event: DragEvent, targetIndex: number) {
+    if (draggedEpicIndex.value !== null && draggedEpicIndex.value !== targetIndex) {
+        store.reorderEpics(draggedEpicIndex.value, targetIndex)
+    }
+    draggedEpicIndex.value = null
+}
 
 function openTaskEditor(taskId?: string, epicId?: string) {
     editingTaskId.value = taskId || ''
@@ -306,10 +332,21 @@ function getEpicLayout(epic: any) {
                      </div>
                 </div>
 
-        <template v-for="epic in store.epics" :key="epic.id">
+        <template v-for="(epic, index) in store.epics" :key="epic.id">
+            <div 
+                class="epic-container"
+                draggable="true"
+                @dragstart="onEpicDragStart($event, index)"
+                @dragover="onEpicDragOver"
+                @drop="onEpicDrop($event, index)"
+                :class="{ 'dragging': draggedEpicIndex === index }"
+            >
             <!-- Epic Header Row -->
             <div class="epic-row">
                 <div class="epic-info">
+                  <div class="drag-handle" @click.stop title="Drag to reorder">
+                    <GripVertical :size="16" />
+                  </div>
                   <div class="epic-label" :style="{ borderColor: epic.color }">{{ epic.title }}</div>
                   <button class="icon-btn-ghost" title="Edit Epic" @click="openEpicEditor(epic.id)">
                       <Pencil :size="12" />
@@ -421,6 +458,7 @@ function getEpicLayout(epic: any) {
                 </div>
             </div>
             <!-- End Epic Tasks Body -->
+            </div>
         </template>
       </div>
     </div>
@@ -677,5 +715,23 @@ function getEpicLayout(epic: any) {
     position: relative;
     height: 100%;
     /* border-left: 1px solid red; debug */
+}
+
+.drag-handle {
+    cursor: grab;
+    color: var(--color-text-muted);
+    opacity: 0.5;
+    display: flex;
+    align-items: center;
+    margin-right: -4px; /* Pull closer to label */
+    padding: 2px;
+}
+.drag-handle:hover {
+    opacity: 1;
+}
+
+.epic-container.dragging {
+    opacity: 0.4;
+    background: rgba(255, 255, 255, 0.05);
 }
 </style>
