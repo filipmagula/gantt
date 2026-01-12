@@ -237,6 +237,20 @@ function getEpicLayout(epic: any) {
     
     return { lanes, taskRowIndex }
 }
+
+function handleWheel(event: WheelEvent) {
+    // Check for horizontal scroll intent: Shift+Wheel OR Horizontal Delta
+    if (event.shiftKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) {
+        event.preventDefault()
+        
+        const delta = event.shiftKey && event.deltaX === 0 ? event.deltaY : event.deltaX
+        
+        if (Math.abs(delta) > 10) {
+            const days = delta > 0 ? 1 : -1
+            dateStore.shiftDays(days)
+        }
+    }
+}
 </script>
 
 <template>
@@ -256,7 +270,7 @@ function getEpicLayout(epic: any) {
     </div>
 
     <!-- Scrollable Grid Container -->
-    <div class="gantt-scroll-area">
+    <div class="gantt-scroll-area" @wheel="handleWheel">
       <!-- Header Row (Grid) -->
       <div 
         class="timeline-header grid-row"

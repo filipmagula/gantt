@@ -300,6 +300,48 @@ export const useCapacityStore = defineStore('capacity', () => {
         }
     }
 
+    function moveTask(taskId: string, targetEpicId: string) {
+        // 1. Find Task and Current Epic
+        let taskToMove: Task | undefined
+        let sourceEpicIndex = -1
+        let taskIndex = -1
+
+        for (let i = 0; i < epics.value.length; i++) {
+            const epic = epics.value[i]
+            if (!epic) continue
+
+            const idx = epic.tasks.findIndex(t => t.id === taskId)
+            if (idx !== -1) {
+                sourceEpicIndex = i
+                taskIndex = idx
+                taskToMove = epic.tasks[idx]
+                break
+            }
+        }
+
+        if (!taskToMove || sourceEpicIndex === -1) return
+
+        // 2. Check if moving to same epic (redundant but safe)
+        const sourceEpic = epics.value[sourceEpicIndex]
+        if (sourceEpic && sourceEpic.id === targetEpicId) return
+
+        // 3. Find Target Epic
+        const targetEpic = epics.value.find(e => e.id === targetEpicId)
+        if (!targetEpic) return
+
+        // 4. Perform Move
+        // Remove from source
+        if (sourceEpic) {
+            sourceEpic.tasks.splice(taskIndex, 1)
+
+            // Update Epic ID
+            taskToMove.epicId = targetEpicId
+
+            // Add to target
+            targetEpic.tasks.push(taskToMove)
+        }
+    }
+
     function clearProject(options: { names: boolean, resources: boolean, epics: boolean }) {
         console.log("Executing clearProject with options:", options)
         if (options.names) {
@@ -340,6 +382,7 @@ export const useCapacityStore = defineStore('capacity', () => {
         updateAppName,
         reorderResources,
         reorderEpics,
+        moveTask,
         clearProject
     }
 })

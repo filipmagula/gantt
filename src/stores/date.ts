@@ -31,6 +31,10 @@ export const useDateStore = defineStore('date', () => {
         startDate.value = startOfWeek(new Date(), { weekStartsOn: 1 })
     }
 
+    function shiftDays(days: number) {
+        startDate.value = addDays(startDate.value, days)
+    }
+
     function setWeeks(weeks: number) {
         if (weeks >= 2 && weeks <= 5) {
             weeksToShow.value = weeks
@@ -44,6 +48,7 @@ export const useDateStore = defineStore('date', () => {
         timelineDates,
         nextWeek,
         prevWeek,
+        shiftDays,
         scrollToToday,
         setWeeks
     }

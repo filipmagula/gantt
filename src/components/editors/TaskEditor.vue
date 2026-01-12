@@ -24,7 +24,8 @@ const form = ref({
   start: '',
   end: '',
   assignments: [] as Assignment[],
-  dependencies: [] as string[]
+  dependencies: [] as string[],
+  epicId: ''
 })
 
 const isDeleting = ref(false)
@@ -41,19 +42,24 @@ watch(() => props.isOpen, () => {
             start: foundTask.start,
             end: foundTask.end,
             assignments: JSON.parse(JSON.stringify(foundTask.assignments)),
-            dependencies: JSON.parse(JSON.stringify(foundTask.dependencies || []))
+            dependencies: JSON.parse(JSON.stringify(foundTask.dependencies || [])),
+            epicId: foundTask.epicId
         }
     }
   } else {
     // New Task
     task.value = null
     const today = new Date().toISOString().split('T')[0] || ''
+    // Safe access to first epic
+    const firstEpicId = (store.epics && store.epics.length > 0 && store.epics[0]) ? store.epics[0].id : ''
+    
     form.value = {
         name: '',
         start: today,
         end: today,
         assignments: [],
-        dependencies: []
+        dependencies: [],
+        epicId: props.epicId || firstEpicId
     }
     isDeleting.value = false
   }
@@ -113,7 +119,22 @@ function save() {
   if (!form.value.name) return
   
   if (props.taskId && task.value) {
+     // Check if Epic Changed
+     if (task.value.epicId !== form.value.epicId) {
+         store.moveTask(props.taskId, form.value.epicId)
+         // NOTE: After move, the task object reference in 'task.value' might be stale regarding its parent array,
+         // but the object itself is likely the same reference if moveTask just spliced it.
+         // However, let's re-fetch or ensure current mutations apply to the MOVED task.
+         // Since 'moveTask' moves the OBJECT, mutations below should still apply to that object reference.
+     }
+
      // Update existing (direct mutation for simplicity)
+     // We need to find it again to be safe? Or utilize the same reference?
+     // 'moveTask' logic: 
+     // taskToMove = epics.value[i].tasks.splice(...)[0]
+     // target.push(taskToMove)
+     // So the underlying object reference is preserved.
+     
      const storedTask = store.allTasks.find(t => t.id === props.taskId)
      if (storedTask) {
        storedTask.name = form.value.name
@@ -121,12 +142,19 @@ function save() {
        storedTask.end = form.value.end
        storedTask.assignments = form.value.assignments
        storedTask.dependencies = form.value.dependencies
+       // epicId is already updated by moveTask or needs to be set if we didn't move (unlikely if checks pass)
+       // Actually moveTask sets: taskToMove.epicId = targetEpicId
+       // So we don't need to manually set it here.
      }
-  } else if (props.epicId) {
+  } else {
      // Create new
+     // Use form.epicId instead of props.epicId
+     const targetEpicId = form.value.epicId || props.epicId || (store.epics[0]?.id)
+     if (!targetEpicId) return // Should not happen if epics exist
+
      const newTask: Task = {
          id: `t${Date.now()}`,
-         epicId: props.epicId,
+         epicId: targetEpicId,
          name: form.value.name,
          start: form.value.start,
          end: form.value.end,
@@ -136,7 +164,7 @@ function save() {
      // Fix assignments taskId reference
      newTask.assignments.forEach(a => a.taskId = newTask.id)
      
-     store.addTask(props.epicId, newTask)
+     store.addTask(targetEpicId, newTask)
   }
   
   emit('save')
@@ -165,6 +193,16 @@ function handleDelete() {
     <div class="form-group">
       <label>Task Name</label>
       <input v-model="form.name" type="text" class="input-field" placeholder="Task Name" autofocus />
+    </div>
+
+    <!-- Epic Selection -->
+    <div class="form-group">
+        <label>Epic</label>
+        <select v-model="form.epicId" class="input-field select-field">
+            <option v-for="epic in store.epics" :key="epic.id" :value="epic.id">
+                {{ epic.title }}
+            </option>
+        </select>
     </div>
 
     <div v-if="!isDeleting">

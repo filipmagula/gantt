@@ -60,6 +60,35 @@ function onDrop(_event: DragEvent, targetIndex: number) {
     draggedResourceIndex.value = null
 }
 
+// Mouse Wheel Navigation
+function handleWheel(event: WheelEvent) {
+    // Check for horizontal scroll intent:
+    // 1. Shift key pressed (Shift + Vertical Scroll)
+    // 2. Horizontal delta present (Trackpad/Horizontal Mouse Wheel)
+    if (event.shiftKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) {
+        event.preventDefault()
+        
+        // Determine direction
+        // For shift+scroll, deltaY is usually used. For horizontal, deltaX.
+        // If Shift is held, most browsers might map vertical wheel to deltaX automatically for standard scrolling elements,
+        // but since we are preventing default, we might see raw values.
+        // Let's check both.
+        
+        const delta = event.shiftKey && event.deltaX === 0 ? event.deltaY : event.deltaX
+        
+        // Threshold to prevent over-sensitivity
+        // We can just shift 1 day per event tick if magnitude is sufficient?
+        // Or accumulate?
+        // Let's try direct mapping first, maybe limit frequency if needed.
+        // A standard 'tick' is usually around 100 on Windows, varies on Mac.
+        
+        if (Math.abs(delta) > 10) {
+            const days = delta > 0 ? 1 : -1
+            dateStore.shiftDays(days)
+        }
+    }
+}
+
 </script>
 
 <template>
@@ -77,7 +106,7 @@ function onDrop(_event: DragEvent, targetIndex: number) {
     </div>
 
     <!-- The Grid -->
-    <div class="grid-wrapper">
+    <div class="grid-wrapper" @wheel="handleWheel">
       <table class="heatmap-table">
         <thead>
           <tr>
