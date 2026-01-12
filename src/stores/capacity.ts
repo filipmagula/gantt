@@ -296,7 +296,6 @@ export const useCapacityStore = defineStore('capacity', () => {
         }
         const item = epics.value.splice(fromIndex, 1)[0]
         if (item) {
-            epics.value.splice(toIndex, 0, item)
         }
     }
 
@@ -342,6 +341,28 @@ export const useCapacityStore = defineStore('capacity', () => {
         }
     }
 
+    function duplicateTask(taskId: string) {
+        // Find task
+        for (const epic of epics.value) {
+            const task = epic.tasks.find(t => t.id === taskId)
+            if (task) {
+                const newId = `t${Date.now()}` // Simple unique ID
+                // Deep copy to avoid reference issues
+                const newTask: Task = JSON.parse(JSON.stringify(task))
+
+                newTask.id = newId
+                newTask.name = `Copy of ${task.name}`
+
+                // Fix assignments to point to new task ID
+                newTask.assignments.forEach(a => a.taskId = newId)
+
+                // Add to same epic
+                epic.tasks.push(newTask)
+                return
+            }
+        }
+    }
+
     function clearProject(options: { names: boolean, resources: boolean, epics: boolean }) {
         console.log("Executing clearProject with options:", options)
         if (options.names) {
@@ -383,6 +404,7 @@ export const useCapacityStore = defineStore('capacity', () => {
         reorderResources,
         reorderEpics,
         moveTask,
+        duplicateTask,
         clearProject
     }
 })

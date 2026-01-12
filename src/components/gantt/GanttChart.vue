@@ -1,5 +1,6 @@
+```
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useCapacityStore } from '../../stores/capacity'
 import { useDateStore } from '../../stores/date'
 import { addDays, format, differenceInDays, parseISO } from 'date-fns'
@@ -251,6 +252,27 @@ function handleWheel(event: WheelEvent) {
         }
     }
 }
+
+// Task Duplication
+const hoveredTaskId = ref<string | null>(null)
+
+function onKeyDown(e: KeyboardEvent) {
+    // Ctrl+D or Cmd+D
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
+        if (hoveredTaskId.value) {
+            e.preventDefault()
+            store.duplicateTask(hoveredTaskId.value)
+        }
+    }
+}
+
+onMounted(() => {
+    window.addEventListener('keydown', onKeyDown)
+})
+
+onUnmounted(() => {
+    window.removeEventListener('keydown', onKeyDown)
+})
 </script>
 
 <template>
@@ -474,13 +496,20 @@ function handleWheel(event: WheelEvent) {
                                     :style="{ gridTemplateColumns: `repeat(${dateStore.daysToShow}, 1fr)` }"
                                 >
                                     <template v-for="task in lane" :key="task.id">
-                                        <div 
+                                        <div
                                             v-if="shouldRenderTask(task)"
                                             class="task-bar"
                                             :class="{ 'overloaded': store.isTaskOverloaded(task.id) }"
-                                            :style="{ ...getTaskGridStyle(task), backgroundColor: epic.color || '#6366f1' }"
+                                            :style="{
+                                                ...getTaskGridStyle(task),
+                                                '--task-color': task.epicId
+                                                    ? store.epics.find(e => e.id === task.epicId)?.color
+                                                    : '#6366f1'
+                                            }"
                                             :title="`${task.name}\n${formatAssignments(task.assignments)}`"
                                             @click.stop="openTaskEditor(task.id)"
+                                            @mouseenter="hoveredTaskId = task.id"
+                                            @mouseleave="hoveredTaskId = null"
                                         >
                                             <div class="task-content">
                                                 <span class="task-name">{{ task.name }}</span>
@@ -658,6 +687,7 @@ function handleWheel(event: WheelEvent) {
     pointer-events: auto; /* Re-enable pointer events */
     height: 100%; /* Fill the padded row */
     min-width: 2px; /* Ensure visible even if tiny */
+    background-color: var(--task-color);
 }
 .task-bar:hover { filter: brightness(1.1); z-index: 15; min-width: fit-content; }
 .task-content { display: flex; gap: 8px; overflow: hidden; text-overflow: ellipsis; }
