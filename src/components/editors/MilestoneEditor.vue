@@ -92,7 +92,7 @@ function handleDelete() {
 
         <div class="form-group">
             <label>Epic (Optional)</label>
-            <select v-model="form.epicId" class="input-field">
+            <select v-model="form.epicId" class="input-field select-field">
                 <option value="">(Global Milestone)</option>
                 <option v-for="epic in store.epics" :key="epic.id" :value="epic.id">
                     {{ epic.title }}
