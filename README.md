@@ -29,6 +29,16 @@ Download a JSON based demo project from here: <https://github.com/filipmagula/ga
 - **Role Awareness**: Color-coded resource roles (Management, Dev, QA, etc.).
 - **Drag & Drop Reordering**: Easily reorganize resources in the heatmap view to group teams or prioritize individuals.
 
+### Share your project
+
+- In case you want to show your project but you do not want to bother anyone with import, you can inject your publicly stored project directly in the application link using the following URL structure: https://<your-app-address>/?project=<direct-link-the-json-file>
+  - Example: https://filipmagula.github.io/gantt/?project=https://raw.githubusercontent.com/filipmagula/gantt/refs/tags/initial/docs/projects/capacity-plan-2026-01-08_19-27-15.json
+  - Direct link means a link which will open the raw content of the json file directly in the browser
+
+### Other nice features
+- Ctrl+D on hover will duplicate the task
+- Shift+Scroll moves the view left and right
+
 ## Application Preview
 
 ### Main Views
