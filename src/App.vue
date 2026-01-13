@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { Rocket, BarChart2, Upload, Download, ChartGantt } from 'lucide-vue-next'
 import ResourceHeatmap from './components/heatmap/ResourceHeatmap.vue'
 import GanttChart from './components/gantt/GanttChart.vue'
@@ -81,6 +81,42 @@ function handleFileImport(event: Event) {
     }
     reader.readAsText(file)
   }
+}
+
+// Remote Project Loading
+onMounted(() => {
+    const params = new URLSearchParams(window.location.search)
+    const projectUrl = params.get('project')
+    
+    if (projectUrl) {
+        fetchRemoteProject(projectUrl)
+    }
+})
+
+async function fetchRemoteProject(url: string) {
+    // Show loading? We can imply it or use a separate loading state if needed.
+    // For now, notification is enough context.
+    notifications.add('Loading remote project...', 'info')
+    
+    try {
+        const response = await fetch(url)
+        if (!response.ok) {
+            throw new Error(`Failed to load project: ${response.statusText}`)
+        }
+        
+        const jsonText = await response.text()
+        
+        if (store.importState(jsonText)) {
+            notifications.add('Remote project loaded successfully', 'success')
+            // Optional: Clean URL? window.history.replaceState(...)
+        } else {
+            throw new Error('Invalid project data')
+        }
+        
+    } catch (error: any) {
+        console.error("Remote Load Error:", error)
+        notifications.add(`Error loading project: ${error.message}`, 'error')
+    }
 }
 </script>
 
