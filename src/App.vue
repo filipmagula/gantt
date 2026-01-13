@@ -10,8 +10,9 @@ import AppNameEditor from './components/editors/AppNameEditor.vue'
 import ToastContainer from './components/ui/ToastContainer.vue'
 import DateRangeControls from './components/common/DateRangeControls.vue'
 
-import { Trash2 } from 'lucide-vue-next' // Import Trash2
+import { Trash2, HelpCircle } from 'lucide-vue-next' // Import Trash2
 import ClearProjectModal from './components/common/ClearProjectModal.vue'
+import HelpModal from './components/modals/HelpModal.vue'
 
 const currentView = ref<'heatmap' | 'gantt'>('heatmap')
 const store = useCapacityStore()
@@ -19,6 +20,7 @@ const notifications = useNotificationStore()
 const fileInput = ref<HTMLInputElement | null>(null)
 const isNameEditorOpen = ref(false)
 const isClearModalOpen = ref(false)
+const isHelpOpen = ref(false)
 
 // Export Handler
 function handleExport() {
@@ -129,6 +131,10 @@ function handleFileImport(event: Event) {
         <button class="icon-btn" title="Clear Project" @click="isClearModalOpen = true">
           <Trash2 :size="18" />
         </button>
+        <div style="width: 1px; height: 44px; background: rgba(255,255,255,0.1); margin: 0 4px;"></div>
+        <button class="icon-btn" title="Help & About" @click="isHelpOpen = true">
+          <HelpCircle :size="18" />
+        </button>
       </div>
     </header>
 
@@ -158,6 +164,13 @@ function handleFileImport(event: Event) {
       @close="isClearModalOpen = false"
       @confirm="handleClearProject"
     />
+    <Modal
+      :isOpen="isHelpOpen"
+      title=" " 
+      @close="isHelpOpen = false"
+    >
+        <HelpModal @close="isHelpOpen = false" />
+    </Modal>
     <ToastContainer />
   </div>
 </template>
